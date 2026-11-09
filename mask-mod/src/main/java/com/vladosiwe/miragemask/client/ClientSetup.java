@@ -36,12 +36,35 @@ public final class ClientSetup {
     }
 
     @SubscribeEvent
+    public static void layers(net.neoforged.neoforge.client.event.EntityRenderersEvent.AddLayers event) {
+        for (net.minecraft.client.resources.PlayerSkin.Model skin : event.getSkins()) {
+            if (event.getSkin(skin) instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer renderer) {
+                renderer.addLayer(new MaskLayer(renderer));
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void keys(net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent event) {
+        event.register(ClientInput.LOCK);
+        event.register(ClientInput.REVEAL);
+    }
+
+    @SubscribeEvent
     public static void itemExtensions(RegisterClientExtensionsEvent event) {
         event.registerItem(new MaskHand(), ModItems.MIRAGE_MASK.get());
     }
 
     /** Анимация надевания: одна рука подносит маску к лицу. */
     static final class MaskHand implements IClientItemExtensions {
+        private MaskItemRenderer renderer;
+
+        @Override
+        public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            if (renderer == null) renderer = new MaskItemRenderer();
+            return renderer;
+        }
+
         @Override
         public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
             if (entity.isUsingItem() && entity.getUsedItemHand() == hand) {
@@ -58,17 +81,13 @@ public final class ClientSetup {
             float used = MirageMaskItem.PUT_ON_TICKS - (player.getUseItemRemainingTicks() - partialTick + 1.0F);
             float t = Mth.clamp(used / MirageMaskItem.PUT_ON_TICKS, 0, 1);
             float e = t * t * (3 - 2 * t); // плавный старт и финиш
-            // из обычного положения руки — к центру лица, маска разворачивается к камере и «наплывает»
-            pose.translate(Mth.lerp(e, side * 0.56F, 0.0F), Mth.lerp(e, -0.52F, -0.12F), Mth.lerp(e, -0.72F, -0.30F));
-            // модель в руке развёрнута боком (display -70°) — доворачиваем маску лицом к камере
-            pose.mulPose(Axis.YP.rotationDegrees(side * 70.0F * e));
-            pose.mulPose(Axis.ZP.rotationDegrees(-side * 8.0F * e));
-            float s = 1.0F + 1.6F * e * e;
-            pose.scale(s, s, s);
-            if (t > 0.92F) {
-                float shake = (t - 0.92F) * 0.08F;
-                pose.translate(Mth.sin(player.tickCount * 3.1F) * shake, Mth.cos(player.tickCount * 2.7F) * shake, 0);
-            }
+            // рука несёт маску от бока к центру лица; в конце маска «прижимается» и растягивается по экрану
+            float press = t > 0.8F ? (t - 0.8F) / 0.2F : 0;
+            pose.translate(Mth.lerp(e, side * 0.56F, 0.0F), Mth.lerp(e, -0.52F, -0.30F), Mth.lerp(e, -0.72F, -0.42F) + press * 0.16F);
+            pose.mulPose(Axis.YP.rotationDegrees(side * 22.0F * e));          // доворот лицом к камере (display -22°)
+            pose.mulPose(Axis.ZP.rotationDegrees(side * 12.0F * (1 - e)));
+            float s = 1.0F + 0.9F * e * e + press * 0.6F;
+            pose.scale(s * (1 + press * 0.15F), s * (1 - press * 0.08F), s);   // «шлепок» — сплющивается о лицо
             return true;
         }
     }

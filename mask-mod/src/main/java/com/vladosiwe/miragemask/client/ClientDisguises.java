@@ -39,8 +39,18 @@ import net.neoforged.neoforge.client.event.RenderPlayerEvent;
  */
 @EventBusSubscriber(modid = MirageMask.MOD_ID, value = Dist.CLIENT)
 public final class ClientDisguises {
+    public static final int STICK_TICKS = 14;
+    static final int SHATTER_TICKS = 16;
+    static int clientTicks;
+
+    /** Что рисовать на лице настоящего игрока (3D-маска) — для MaskLayer. */
+    public record Visual(MaskMesh.Mode mode, float progress) {}
+
+    private static final Map<Integer, Integer> SHATTER = new HashMap<>();
+
     static final class Doll {
-        final DisguisePayload info;
+        DisguisePayload info;
+        int stickStart = -1000;
         final LivingEntity entity;
         boolean fresh = true;
         int stillTicks;
@@ -65,19 +75,62 @@ public final class ClientDisguises {
         boolean local = mc.player != null && mc.player.getId() == p.entityId();
         if (!p.active()) {
             DOLLS.remove(p.entityId());
+            if (p.flash() == DisguisePayload.FLASH_BREAK || p.flash() == DisguisePayload.FLASH_END) {
+                SHATTER.put(p.entityId(), clientTicks);
+            }
             if (local) {
                 ClientBridge.localDisguisedId = Integer.MIN_VALUE;
                 HexOverlay.stop(p.flash());
             }
             return;
         }
-        LivingEntity doll = createDoll(level, p);
-        if (doll == null) return;
-        DOLLS.put(p.entityId(), new Doll(p, doll));
+        Doll old = DOLLS.get(p.entityId());
+        if (old != null && sameLook(old.info, p)) {
+            old.info = p;                                   // пауза/фиксация — кукла та же
+        } else {
+            LivingEntity doll = createDoll(level, p);
+            if (doll == null) return;
+            Doll fresh = new Doll(p, doll);
+            if (old != null) fresh.stickStart = old.stickStart;
+            DOLLS.put(p.entityId(), fresh);
+        }
+        Doll d = DOLLS.get(p.entityId());
+        if (p.flash() == DisguisePayload.FLASH_ACTIVATE) d.stickStart = clientTicks;
+        SHATTER.remove(p.entityId());
         if (local) {
             ClientBridge.localDisguisedId = p.entityId();
             HexOverlay.start(p, describe(p));
         }
+    }
+
+    private static boolean sameLook(DisguisePayload a, DisguisePayload b) {
+        return a.kind() == b.kind() && a.entityType().equals(b.entityType())
+                && java.util.Objects.equals(a.profileId(), b.profileId());
+    }
+
+    /** Кукла рисуется вместо игрока, только когда маска уже прилипла и лицо не открыто. */
+    private static boolean showsDoll(Doll d) {
+        return !d.info.paused() && clientTicks - d.stickStart >= STICK_TICKS;
+    }
+
+    public static Visual visual(int entityId, float partialTick) {
+        Doll d = DOLLS.get(entityId);
+        if (d != null) {
+            float age = clientTicks - d.stickStart + partialTick;
+            if (age < STICK_TICKS) return new Visual(MaskMesh.Mode.STICK, age / STICK_TICKS);
+            if (d.info.paused()) return new Visual(MaskMesh.Mode.RING, 0);
+            return null;
+        }
+        Integer s = SHATTER.get(entityId);
+        if (s != null) {
+            float age = clientTicks - s + partialTick;
+            if (age < SHATTER_TICKS) return new Visual(MaskMesh.Mode.SHATTER, age / SHATTER_TICKS);
+        }
+        return null;
+    }
+
+    public static float time(float partialTick) {
+        return clientTicks + partialTick;
     }
 
     public static Component describe(DisguisePayload p) {
@@ -118,7 +171,7 @@ public final class ClientDisguises {
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
         Doll doll = DOLLS.get(event.getEntity().getId());
-        if (doll == null) return;
+        if (doll == null || !showsDoll(doll)) return;
         event.setCanceled(true); // настоящий игрок (с мечом, бронёй, ником) не рисуется вообще
         LivingEntity e = doll.entity;
         float pt = event.getPartialTick();
@@ -132,7 +185,9 @@ public final class ClientDisguises {
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.isPaused()) return;
+        clientTicks++;
         HexOverlay.tick();
+        SHATTER.values().removeIf(start -> clientTicks - start > SHATTER_TICKS + 2);
         Iterator<Map.Entry<Integer, Doll>> it = DOLLS.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<Integer, Doll> entry = it.next();
@@ -140,8 +195,20 @@ public final class ClientDisguises {
             if (!(owner instanceof Player player)) {
                 continue; // игрок вне зоны видимости — кукла ждёт
             }
-            follow(entry.getValue(), player, mc.level);
+            Doll d = entry.getValue();
+            follow(d, player, mc.level);
+            aura(d, mc.level);
         }
+    }
+
+    /** Едва заметная «искажённая» аура: редкие голубые соты, всплывающие с силуэта куклы. */
+    private static void aura(Doll d, ClientLevel level) {
+        if (!showsDoll(d) || clientTicks % 7 != 0) return;
+        LivingEntity e = d.entity;
+        double w = e.getBbWidth() * 0.6, h = e.getBbHeight();
+        level.addParticle(com.vladosiwe.miragemask.registry.ModParticles.HEX.get(),
+                e.getX() + (RANDOM.nextDouble() - 0.5) * 2 * w, e.getY() + RANDOM.nextDouble() * h,
+                e.getZ() + (RANDOM.nextDouble() - 0.5) * 2 * w, 0, 0.01, 0);
     }
 
     private static void follow(Doll d, Player p, ClientLevel level) {
@@ -233,6 +300,7 @@ public final class ClientDisguises {
     @SubscribeEvent
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         DOLLS.clear();
+        SHATTER.clear();
         ClientBridge.localDisguisedId = Integer.MIN_VALUE;
         HexOverlay.reset();
     }

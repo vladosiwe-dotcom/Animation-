@@ -1,11 +1,20 @@
 {
   "item.miragemask.mirage_mask": "Маска Миражей",
   "item.miragemask.mirage_mask.desc1": "ПКМ (удерживать) — надеть маску на 60 секунд",
-  "item.miragemask.mirage_mask.desc2": "Для всех ты станешь мобом, жителем или копией другого игрока — облик подстраивается под обстановку",
-  "item.miragemask.mirage_mask.desc3": "Удар или выстрел срывает маску. Перезарядка 2 минуты после окончания",
+  "item.miragemask.mirage_mask.desc2": "Для всех ты станешь мобом, жителем или копией другого игрока. Маска уходит с руки на лицо и возвращается в инвентарь",
+  "item.miragemask.mirage_mask.desc3": "G — оставить образ, H — открыть лицо / вернуть образ. Удар срывает маску",
   "message.miragemask.on": "Маска надета: ты — мираж",
   "message.miragemask.off": "Маска растворилась",
   "message.miragemask.broken": "Маска сорвана!",
   "message.miragemask.left": "Маска: осталось %s сек",
-  "message.miragemask.already": "Маска уже на лице"
+  "message.miragemask.already": "Маска уже на лице",
+  "key.categories.miragemask": "Маска Миражей",
+  "key.miragemask.lock": "Оставить образ (не менять облик)",
+  "key.miragemask.reveal": "Отключить / вернуть образ",
+  "message.miragemask.locked": "Образ закреплён — маска больше не меняет облик",
+  "message.miragemask.unlocked": "Образ снова подстраивается под обстановку",
+  "message.miragemask.revealed": "Лицо открыто — маскировка на паузе",
+  "message.miragemask.resumed": "Образ возвращён",
+  "hud.miragemask.locked": "  [закреплён]",
+  "hud.miragemask.paused": "  [лицо открыто]"
 }

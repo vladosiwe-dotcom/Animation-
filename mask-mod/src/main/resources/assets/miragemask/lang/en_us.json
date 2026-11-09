@@ -1,11 +1,20 @@
 {
   "item.miragemask.mirage_mask": "Mirage Mask",
   "item.miragemask.mirage_mask.desc1": "Hold right-click to put the mask on for 60 seconds",
-  "item.miragemask.mirage_mask.desc2": "Everyone sees you as a mob, a villager or a copy of another player - the look adapts to your surroundings",
-  "item.miragemask.mirage_mask.desc3": "Attacking or shooting breaks the mask. Recharges for 2 minutes after it fades",
+  "item.miragemask.mirage_mask.desc2": "Everyone sees you as a mob, a villager or a copy of another player. The mask moves from your hand to your face and returns to your inventory",
+  "item.miragemask.mirage_mask.desc3": "G - keep look, H - reveal face / resume. A hit breaks the mask",
   "message.miragemask.on": "Mask on: you are a mirage",
   "message.miragemask.off": "The mask dissolved",
   "message.miragemask.broken": "The mask shattered!",
   "message.miragemask.left": "Mask: %s seconds left",
-  "message.miragemask.already": "The mask is already on your face"
+  "message.miragemask.already": "The mask is already on your face",
+  "key.categories.miragemask": "Mirage Mask",
+  "key.miragemask.lock": "Keep current look",
+  "key.miragemask.reveal": "Reveal face / resume disguise",
+  "message.miragemask.locked": "Look locked - the mask stops changing it",
+  "message.miragemask.unlocked": "Look adapts to surroundings again",
+  "message.miragemask.revealed": "Face revealed - disguise paused",
+  "message.miragemask.resumed": "Disguise resumed",
+  "hud.miragemask.locked": "  [locked]",
+  "hud.miragemask.paused": "  [face revealed]"
 }

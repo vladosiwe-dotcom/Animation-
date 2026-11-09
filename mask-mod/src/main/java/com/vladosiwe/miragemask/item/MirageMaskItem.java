@@ -47,8 +47,10 @@ public class MirageMaskItem extends Item {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
         if (!level.isClientSide && entity instanceof ServerPlayer player) {
-            if (DisguiseManager.activate(player)) {
+            // маска уходит из руки на лицо; вернётся в инвентарь, когда действие закончится
+            if (DisguiseManager.activate(player, stack.copy())) {
                 player.getCooldowns().addCooldown(this, DURATION_TICKS + RECHARGE_TICKS);
+                return ItemStack.EMPTY;
             }
         }
         return stack;

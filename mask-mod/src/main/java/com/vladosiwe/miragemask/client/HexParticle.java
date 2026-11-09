@@ -9,7 +9,7 @@ import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 
-/** Светящийся шестиугольник: фиолетовый, розовый или белая искра; медленно крутится и гаснет. */
+/** Светящийся шестиугольник голубой энергии (или белая искра); медленно крутится и гаснет. */
 public class HexParticle extends TextureSheetParticle {
     private final float spin;
 
@@ -24,8 +24,8 @@ public class HexParticle extends TextureSheetParticle {
         this.friction = 0.92F;
         this.hasPhysics = false;
         int kind = random.nextInt(10);
-        if (kind < 5) setColor(0.48F, 0.36F, 1.0F);        // фиолетовый
-        else if (kind < 8) setColor(1.0F, 0.79F, 0.86F);   // розовое стекло
+        if (kind < 5) setColor(0.12F, 0.78F, 1.0F);        // голубая энергия
+        else if (kind < 8) setColor(0.66F, 0.95F, 1.0F);   // светлая кромка
         else setColor(1.0F, 1.0F, 1.0F);                   // искра
         this.roll = this.oRoll = random.nextFloat() * Mth.TWO_PI;
         this.spin = (random.nextFloat() - 0.5F) * 0.2F;

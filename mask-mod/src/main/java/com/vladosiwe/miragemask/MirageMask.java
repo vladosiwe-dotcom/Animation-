@@ -29,7 +29,11 @@ public class MirageMask {
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(DisguisePayload.TYPE, DisguisePayload.STREAM_CODEC, DisguisePayload::handle);
+        event.registrar("2")
+                .playToClient(DisguisePayload.TYPE, DisguisePayload.STREAM_CODEC, DisguisePayload::handle)
+                .playToServer(com.vladosiwe.miragemask.network.MaskActionPayload.TYPE,
+                        com.vladosiwe.miragemask.network.MaskActionPayload.STREAM_CODEC,
+                        com.vladosiwe.miragemask.network.MaskActionPayload::handle);
     }
 
     private static void creativeTab(BuildCreativeModeTabContentsEvent event) {

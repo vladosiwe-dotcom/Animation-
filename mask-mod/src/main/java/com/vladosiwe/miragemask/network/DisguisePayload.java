@@ -16,22 +16,23 @@ import org.jetbrains.annotations.Nullable;
 /** Сервер → клиенты: «игрок с этим id теперь выглядит так» (или маскировка снята). */
 public record DisguisePayload(int entityId, boolean active, byte kind, ResourceLocation entityType,
                               @Nullable UUID profileId, String profileName, List<ItemStack> equipment,
-                              int ticksLeft, int totalTicks, byte flash) implements CustomPacketPayload {
+                              int ticksLeft, int totalTicks, byte flash, boolean paused, boolean locked)
+        implements CustomPacketPayload {
 
-    public static final byte FLASH_NONE = 0, FLASH_ACTIVATE = 1, FLASH_CHANGE = 2, FLASH_BREAK = 3, FLASH_END = 4;
+    public static final byte FLASH_NONE = 0, FLASH_ACTIVATE = 1, FLASH_CHANGE = 2, FLASH_BREAK = 3, FLASH_END = 4, FLASH_PAUSE = 5, FLASH_RESUME = 6;
 
     public static final Type<DisguisePayload> TYPE = new Type<>(MirageMask.id("disguise"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, DisguisePayload> STREAM_CODEC =
             StreamCodec.of(DisguisePayload::write, DisguisePayload::read);
 
-    public static DisguisePayload of(int entityId, Disguise d, int ticksLeft, int total, byte flash) {
+    public static DisguisePayload of(int entityId, Disguise d, int ticksLeft, int total, byte flash, boolean paused, boolean locked) {
         return new DisguisePayload(entityId, true, (byte) d.kind().ordinal(), d.entityType(), d.profileId(),
-                d.profileName(), d.equipment(), ticksLeft, total, flash);
+                d.profileName(), d.equipment(), ticksLeft, total, flash, paused, locked);
     }
 
     public static DisguisePayload clear(int entityId, byte flash) {
-        return new DisguisePayload(entityId, false, (byte) 0, Disguise.PLAYER_TYPE, null, "", List.of(), 0, 0, flash);
+        return new DisguisePayload(entityId, false, (byte) 0, Disguise.PLAYER_TYPE, null, "", List.of(), 0, 0, flash, false, false);
     }
 
     public boolean isPlayerCopy() {
@@ -51,6 +52,8 @@ public record DisguisePayload(int entityId, boolean active, byte kind, ResourceL
         buf.writeVarInt(p.ticksLeft);
         buf.writeVarInt(p.totalTicks);
         buf.writeByte(p.flash);
+        buf.writeBoolean(p.paused);
+        buf.writeBoolean(p.locked);
     }
 
     private static DisguisePayload read(RegistryFriendlyByteBuf buf) {
@@ -63,7 +66,9 @@ public record DisguisePayload(int entityId, boolean active, byte kind, ResourceL
         int n = Math.min(buf.readVarInt(), 8);
         List<ItemStack> gear = new ArrayList<>(n);
         for (int i = 0; i < n; i++) gear.add(ItemStack.OPTIONAL_STREAM_CODEC.decode(buf));
-        return new DisguisePayload(id, active, kind, type, uuid, name, gear, buf.readVarInt(), buf.readVarInt(), buf.readByte());
+        int left = buf.readVarInt(), total = buf.readVarInt();
+        byte flash = buf.readByte();
+        return new DisguisePayload(id, active, kind, type, uuid, name, gear, left, total, flash, buf.readBoolean(), buf.readBoolean());
     }
 
     @Override

@@ -10,9 +10,9 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "miragemask", "textures")
 SS = 16  # суперсэмплинг
 
-PINK = (255, 214, 228)
-VIOLET = (110, 84, 255)
-DEEP = (70, 40, 170)
+PINK = (190, 240, 255)
+VIOLET = (30, 200, 255)
+DEEP = (10, 90, 190)
 
 
 def hex_pts(cx, cy, r):

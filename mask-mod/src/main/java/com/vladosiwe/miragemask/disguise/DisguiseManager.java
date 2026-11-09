@@ -47,6 +47,9 @@ public final class DisguiseManager {
         int total;
         Mob soundMob;           // временный моб (не в мире) — только чтобы издавать его звуки
         int nextAmbient = 80;
+        boolean paused;         // «отключить образ»: лицо открыто, маскировка на паузе
+        boolean locked;         // «оставить образ»: облик не меняется по обстановке
+        net.minecraft.world.item.ItemStack mask = net.minecraft.world.item.ItemStack.EMPTY;
     }
 
     private static final Map<UUID, State> ACTIVE = new HashMap<>();
@@ -61,9 +64,10 @@ public final class DisguiseManager {
     }
 
     // ------------------------------------------------------------------ включение / выключение
-    public static boolean activate(ServerPlayer player) {
+    public static boolean activate(ServerPlayer player, net.minecraft.world.item.ItemStack mask) {
         if (ACTIVE.containsKey(player.getUUID())) return false;
         State s = new State();
+        s.mask = mask;
         s.total = com.vladosiwe.miragemask.item.MirageMaskItem.DURATION_TICKS;
         s.endTick = player.serverLevel().getGameTime() + s.total;
         ACTIVE.put(player.getUUID(), s);
@@ -78,6 +82,10 @@ public final class DisguiseManager {
     public static void end(ServerPlayer player, boolean broken) {
         State s = ACTIVE.remove(player.getUUID());
         if (s == null) return;
+        // маска «отклеивается» и возвращается в инвентарь (или падает рядом, если места нет)
+        if (!s.mask.isEmpty() && !player.getInventory().add(s.mask)) {
+            player.drop(s.mask, false);
+        }
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(player,
                 DisguisePayload.clear(player.getId(), broken ? DisguisePayload.FLASH_BREAK : DisguisePayload.FLASH_END));
         hexBurst(player, broken ? 40 : 24);
@@ -101,10 +109,50 @@ public final class DisguiseManager {
                 s.soundMob = mob;
             }
         }
-        int left = (int) Math.max(0, s.endTick - player.serverLevel().getGameTime());
-        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, DisguisePayload.of(player.getId(), d, left, s.total, flash));
-        hexBurst(player, flash == DisguisePayload.FLASH_ACTIVATE ? 36 : 22);
+        sync(player, s, flash);
+        if (flash != DisguisePayload.FLASH_ACTIVATE) hexBurst(player, 22); // при надевании — после «прилипания»
         calmTargeters(player, d);
+    }
+
+    private static void sync(ServerPlayer player, State s, byte flash) {
+        int left = (int) Math.max(0, s.endTick - player.serverLevel().getGameTime());
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player,
+                DisguisePayload.of(player.getId(), s.disguise, left, s.total, flash, s.paused, s.locked));
+    }
+
+    // ------------------------------------------------------------------ две функции маски
+    public static final byte ACTION_LOCK = 1, ACTION_REVEAL = 2;
+
+    /** Клавиши: G — оставить образ (не перемаскироваться), H — открыть лицо / вернуть образ. */
+    public static void action(ServerPlayer player, byte action) {
+        State s = ACTIVE.get(player.getUUID());
+        if (s == null) return;
+        if (action == ACTION_LOCK) {
+            s.locked = !s.locked;
+            player.displayClientMessage(Component.translatable(s.locked ? "message.miragemask.locked" : "message.miragemask.unlocked")
+                    .withStyle(ChatFormatting.AQUA), true);
+            play(player, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8F, s.locked ? 0.7F : 1.3F);
+            sync(player, s, DisguisePayload.FLASH_NONE);
+        } else if (action == ACTION_REVEAL) {
+            s.paused = !s.paused;
+            if (s.paused) {
+                player.displayClientMessage(Component.translatable("message.miragemask.revealed").withStyle(ChatFormatting.AQUA), true);
+                play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 0.6F);
+                hexBurst(player, 16);
+                sync(player, s, DisguisePayload.FLASH_PAUSE);
+            } else {
+                player.displayClientMessage(Component.translatable("message.miragemask.resumed").withStyle(ChatFormatting.AQUA), true);
+                play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.9F, 1.1F);
+                String key = DisguiseContext.contextKey(player);
+                if (!s.locked && !key.equals(s.disguise.context())) {
+                    apply(player, s, DisguiseContext.choose(player, key, player.getRandom()), DisguisePayload.FLASH_RESUME);
+                } else {
+                    sync(player, s, DisguisePayload.FLASH_RESUME);
+                    hexBurst(player, 22);
+                    calmTargeters(player, s.disguise);
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------ тик игрока
@@ -125,8 +173,10 @@ public final class DisguiseManager {
                     .withStyle(sec <= 3 ? ChatFormatting.RED : ChatFormatting.GOLD), true);
             player.playNotifySound(SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.PLAYERS, 0.6F, sec == 10 ? 0.7F : 1.0F + (10 - sec) * 0.05F);
         }
-        // смена обстановки → новый облик
-        if (left % CONTEXT_CHECK_TICKS == 0) {
+        if (s.paused) return; // лицо открыто: облик, звуки и реакция мобов на паузе
+        if (left == s.total - 14) hexBurst(player, 36); // маска «прилипла» — вспышка сот
+        // смена обстановки → новый облик (если образ не закреплён)
+        if (!s.locked && left % CONTEXT_CHECK_TICKS == 0) {
             String key = DisguiseContext.contextKey(player);
             if (!key.equals(s.disguise.context())) {
                 apply(player, s, DisguiseContext.choose(player, key, player.getRandom()), DisguisePayload.FLASH_CHANGE);
@@ -153,7 +203,7 @@ public final class DisguiseManager {
     public static void onChangeTarget(LivingChangeTargetEvent event) {
         if (!(event.getNewAboutToBeSetTarget() instanceof ServerPlayer player)) return;
         State s = ACTIVE.get(player.getUUID());
-        if (s == null) return;
+        if (s == null || s.paused) return;
         if (!mayTarget(event.getEntity(), s.disguise)) {
             event.setCanceled(true);
         }
@@ -193,7 +243,7 @@ public final class DisguiseManager {
     // ------------------------------------------------------------------ срыв маски
     @SubscribeEvent
     public static void onAttack(AttackEntityEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && ACTIVE.containsKey(player.getUUID())) {
+        if (event.getEntity() instanceof ServerPlayer player && isActiveUnpaused(player)) {
             end(player, true);
         }
     }
@@ -201,7 +251,7 @@ public final class DisguiseManager {
     @SubscribeEvent
     public static void onDamage(LivingIncomingDamageEvent event) {
         Entity src = event.getSource().getEntity();
-        if (src instanceof ServerPlayer player && src != event.getEntity() && ACTIVE.containsKey(player.getUUID())) {
+        if (src instanceof ServerPlayer player && src != event.getEntity() && isActiveUnpaused(player)) {
             end(player, true);
         }
     }
@@ -211,9 +261,15 @@ public final class DisguiseManager {
         if (event.getEntity() instanceof ServerPlayer player) end(player, true);
     }
 
+    private static boolean isActiveUnpaused(ServerPlayer player) {
+        State s = ACTIVE.get(player.getUUID());
+        return s != null && !s.paused;
+    }
+
+    /** Выход с сервера: маска возвращается в инвентарь до сохранения игрока. */
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        ACTIVE.remove(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer player) end(player, false);
     }
 
     @SubscribeEvent
@@ -237,7 +293,8 @@ public final class DisguiseManager {
             State s = ACTIVE.get(target.getUUID());
             if (s != null) {
                 int left = (int) Math.max(0, s.endTick - target.serverLevel().getGameTime());
-                PacketDistributor.sendToPlayer(viewer, DisguisePayload.of(target.getId(), s.disguise, left, s.total, DisguisePayload.FLASH_NONE));
+                PacketDistributor.sendToPlayer(viewer, DisguisePayload.of(target.getId(), s.disguise, left, s.total,
+                        DisguisePayload.FLASH_NONE, s.paused, s.locked));
             }
         }
     }
@@ -260,7 +317,7 @@ public final class DisguiseManager {
     private static int mirage(java.util.Collection<ServerPlayer> players, boolean on) {
         int n = 0;
         for (ServerPlayer p : players) {
-            if (on ? activate(p) : ACTIVE.containsKey(p.getUUID())) {
+            if (on ? activate(p, net.minecraft.world.item.ItemStack.EMPTY) : ACTIVE.containsKey(p.getUUID())) {
                 if (!on) end(p, false);
                 n++;
             }
