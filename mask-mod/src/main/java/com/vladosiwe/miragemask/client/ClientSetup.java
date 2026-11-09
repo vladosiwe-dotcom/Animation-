@@ -55,7 +55,7 @@ public final class ClientSetup {
         event.registerItem(new MaskHand(), ModItems.MIRAGE_MASK.get());
     }
 
-    /** Анимация надевания: одна рука подносит маску к лицу. */
+    /** Вид от третьего лица (рука у лица) и объёмная маска как предмет. От первого лица — FirstPersonPutOn. */
     static final class MaskHand implements IClientItemExtensions {
         private MaskItemRenderer renderer;
 
@@ -73,22 +73,5 @@ public final class ClientSetup {
             return null;
         }
 
-        @Override
-        public boolean applyForgeHandTransform(PoseStack pose, LocalPlayer player, HumanoidArm arm, ItemStack stack,
-                                               float partialTick, float equipProcess, float swingProcess) {
-            if (!player.isUsingItem() || player.getUseItem() != stack) return false;
-            int side = arm == HumanoidArm.RIGHT ? 1 : -1;
-            float used = MirageMaskItem.PUT_ON_TICKS - (player.getUseItemRemainingTicks() - partialTick + 1.0F);
-            float t = Mth.clamp(used / MirageMaskItem.PUT_ON_TICKS, 0, 1);
-            float e = t * t * (3 - 2 * t); // плавный старт и финиш
-            // рука несёт маску от бока к центру лица; в конце маска «прижимается» и растягивается по экрану
-            float press = t > 0.8F ? (t - 0.8F) / 0.2F : 0;
-            pose.translate(Mth.lerp(e, side * 0.56F, 0.0F), Mth.lerp(e, -0.52F, -0.30F), Mth.lerp(e, -0.72F, -0.42F) + press * 0.16F);
-            pose.mulPose(Axis.YP.rotationDegrees(side * 22.0F * e));          // доворот лицом к камере (display -22°)
-            pose.mulPose(Axis.ZP.rotationDegrees(side * 12.0F * (1 - e)));
-            float s = 1.0F + 0.9F * e * e + press * 0.6F;
-            pose.scale(s * (1 + press * 0.15F), s * (1 - press * 0.08F), s);   // «шлепок» — сплющивается о лицо
-            return true;
-        }
     }
 }

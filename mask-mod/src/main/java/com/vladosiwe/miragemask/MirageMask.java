@@ -15,6 +15,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 @Mod(MirageMask.MOD_ID)
 public class MirageMask {
     public static final String MOD_ID = "miragemask";
+    public static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
 
     public MirageMask(IEventBus modBus) {
         ModItems.ITEMS.register(modBus);

@@ -1,7 +1,6 @@
 package com.vladosiwe.miragemask.disguise;
 
 import com.vladosiwe.miragemask.network.DisguisePayload;
-import com.vladosiwe.miragemask.registry.ModParticles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -93,7 +92,6 @@ public final class DisguiseManager {
         }
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(player,
                 DisguisePayload.clear(player.getId(), broken ? DisguisePayload.FLASH_BREAK : DisguisePayload.FLASH_END));
-        hexBurst(player, broken ? 40 : 24);
         if (broken) {
             play(player, SoundEvents.GLASS_BREAK, 1.0F, 0.7F);
             play(player, SoundEvents.AMETHYST_CLUSTER_BREAK, 1.0F, 0.6F);
@@ -113,7 +111,6 @@ public final class DisguiseManager {
             }
         }
         sync(player, s, flash);
-        if (flash != DisguisePayload.FLASH_ACTIVATE) hexBurst(player, 22); // при надевании — после «прилипания»
         calmTargeters(player, d);
     }
 
@@ -138,7 +135,6 @@ public final class DisguiseManager {
             s.paused = !s.paused;
             if (s.paused) {
                 play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 0.6F);
-                hexBurst(player, 16);
                 sync(player, s, DisguisePayload.FLASH_PAUSE);
             } else {
                 play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.9F, 1.1F);
@@ -147,7 +143,6 @@ public final class DisguiseManager {
                     apply(player, s, DisguiseContext.choose(player, key, player.getRandom()), DisguisePayload.FLASH_RESUME);
                 } else {
                     sync(player, s, DisguisePayload.FLASH_RESUME);
-                    hexBurst(player, 22);
                     calmTargeters(player, s.disguise);
                 }
             }
@@ -171,7 +166,6 @@ public final class DisguiseManager {
             player.playNotifySound(SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.PLAYERS, 0.6F, sec == 10 ? 0.7F : 1.0F + (10 - sec) * 0.05F);
         }
         if (s.paused) return; // лицо открыто: облик, звуки и реакция мобов на паузе
-        if (left == s.total - 14) hexBurst(player, 36); // маска «прилипла» — вспышка сот
         // смена обстановки → новый облик (если образ не закреплён)
         if (!s.locked && left % CONTEXT_CHECK_TICKS == 0) {
             String key = DisguiseContext.contextKey(player);
@@ -305,6 +299,12 @@ public final class DisguiseManager {
                         .executes(ctx -> mirage(java.util.List.of(ctx.getSource().getPlayerOrException()), true))
                         .then(net.minecraft.commands.Commands.argument("targets", net.minecraft.commands.arguments.EntityArgument.players())
                                 .executes(ctx -> mirage(net.minecraft.commands.arguments.EntityArgument.getPlayers(ctx, "targets"), true))))
+                .then(net.minecraft.commands.Commands.literal("reset")
+                        .executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            p.getCooldowns().removeCooldown(com.vladosiwe.miragemask.registry.ModItems.MIRAGE_MASK.get());
+                            return 1;
+                        }))
                 .then(net.minecraft.commands.Commands.literal("as")
                         .then(net.minecraft.commands.Commands.argument("mob", net.minecraft.commands.arguments.ResourceLocationArgument.id())
                                 .suggests(net.minecraft.commands.synchronization.SuggestionProviders.SUMMONABLE_ENTITIES)
@@ -370,10 +370,6 @@ public final class DisguiseManager {
     }
 
     // ------------------------------------------------------------------ эффекты
-    private static void hexBurst(ServerPlayer player, int count) {
-        player.serverLevel().sendParticles(ModParticles.HEX.get(), player.getX(), player.getY() + 1.0, player.getZ(),
-                count, 0.45, 0.7, 0.45, 0.02);
-    }
 
     private static void play(ServerPlayer player, SoundEvent sound, float volume, float pitch) {
         player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, volume, pitch);

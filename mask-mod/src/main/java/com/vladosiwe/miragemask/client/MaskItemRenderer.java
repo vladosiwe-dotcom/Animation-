@@ -14,16 +14,24 @@ public class MaskItemRenderer extends BlockEntityWithoutLevelRenderer {
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
     }
 
+    /** Игрок, который сейчас рисуется (выставляет ClientDisguises): во время надевания маску рисует MaskLayer. */
+    static net.minecraft.world.entity.player.Player renderingPlayer;
+
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose, MultiBufferSource buffers,
                              int light, int overlay) {
+        if ((ctx == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND || ctx == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                && renderingPlayer != null && renderingPlayer.isUsingItem() && renderingPlayer.getUseItem() == stack) {
+            return;
+        }
         pose.pushPose();
         pose.translate(0.5F, 0.5F, 0.5F);
         pose.mulPose(Axis.YP.rotationDegrees(180));   // лицевая сторона маски — к зрителю (+Z)
-        float s = 2.0F;
+        float s = 1.75F;
         pose.scale(s, -s, s);                          // в пикселях головы ось Y смотрит вниз
-        pose.translate(0, 3.1F / 16F, 3.6F / 16F);     // центр лица — в центр предмета
-        MaskMesh.render(pose, buffers, MaskMesh.Mode.FULL, 0, ClientDisguises.time(0), 1.0F, ctx == ItemDisplayContext.GUI);
+        float[] c = MaskModel.center();
+        pose.translate(-c[0] / 16F, -c[1] / 16F, -c[2] / 16F);   // центр маски — в центр предмета
+        MaskModel.render(pose, buffers, MaskModel.Mode.FULL, 0, ClientDisguises.time(0), 1.0F);
         pose.popPose();
     }
 }

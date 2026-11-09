@@ -44,7 +44,7 @@ public final class ClientDisguises {
     static int clientTicks;
 
     /** Что рисовать на лице настоящего игрока (3D-маска) — для MaskLayer. */
-    public record Visual(MaskMesh.Mode mode, float progress) {}
+    public record Visual(MaskModel.Mode mode, float progress) {}
 
     private static final Map<Integer, Integer> SHATTER = new HashMap<>();
 
@@ -117,14 +117,14 @@ public final class ClientDisguises {
         Doll d = DOLLS.get(entityId);
         if (d != null) {
             float age = clientTicks - d.stickStart + partialTick;
-            if (age < STICK_TICKS) return new Visual(MaskMesh.Mode.STICK, age / STICK_TICKS);
-            if (d.info.paused()) return new Visual(MaskMesh.Mode.RING, 0);
+            if (age < STICK_TICKS) return new Visual(MaskModel.Mode.STICK, age / STICK_TICKS);
+            if (d.info.paused()) return new Visual(MaskModel.Mode.FULL, 0);   // маскировка неактивна — маска на лице
             return null;
         }
         Integer s = SHATTER.get(entityId);
         if (s != null) {
             float age = clientTicks - s + partialTick;
-            if (age < SHATTER_TICKS) return new Visual(MaskMesh.Mode.SHATTER, age / SHATTER_TICKS);
+            if (age < SHATTER_TICKS) return new Visual(MaskModel.Mode.SHATTER, age / SHATTER_TICKS);
         }
         return null;
     }
@@ -178,6 +178,7 @@ public final class ClientDisguises {
     // ------------------------------------------------------------------ рендер
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        MaskItemRenderer.renderingPlayer = event.getEntity();
         Doll doll = DOLLS.get(event.getEntity().getId());
         if (doll == null || !showsDoll(doll)) return;
         event.setCanceled(true); // настоящий игрок (с мечом, бронёй, ником) не рисуется вообще
@@ -205,18 +206,7 @@ public final class ClientDisguises {
             }
             Doll d = entry.getValue();
             follow(d, player, mc.level);
-            aura(d, mc.level);
         }
-    }
-
-    /** Едва заметная «искажённая» аура: редкие голубые соты, всплывающие с силуэта куклы. */
-    private static void aura(Doll d, ClientLevel level) {
-        if (!showsDoll(d) || clientTicks % 7 != 0) return;
-        LivingEntity e = d.entity;
-        double w = e.getBbWidth() * 0.6, h = e.getBbHeight();
-        level.addParticle(com.vladosiwe.miragemask.registry.ModParticles.HEX.get(),
-                e.getX() + (RANDOM.nextDouble() - 0.5) * 2 * w, e.getY() + RANDOM.nextDouble() * h,
-                e.getZ() + (RANDOM.nextDouble() - 0.5) * 2 * w, 0, 0.01, 0);
     }
 
     private static void follow(Doll d, Player p, ClientLevel level) {

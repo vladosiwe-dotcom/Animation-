@@ -8,7 +8,6 @@ import java.util.List;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
-import net.minecraft.world.entity.animal.Pig;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,64 +39,101 @@ public final class AutoTest {
             g("water", "squid"), g("water", "glow_squid"), g("water", "cod"), g("water", "salmon"),
             g("water", "dolphin"), g("water", "tropical_fish"), g("water", "axolotl"),
             g("player", "copy"));
-    private static final int GALLERY_START = 520, STEP = 30;
+    private static final int GALLERY_START = 100, STEP = 30;
 
     private static String[] g(String cat, String id) {
         return new String[] {cat, id};
     }
+
+    private static final String MODE = System.getProperty("miragemask.devtest.mode", "look");
 
     @SubscribeEvent
     public static void tick(ClientTickEvent.Post e) {
         Minecraft mc = Minecraft.getInstance();
         if (!ON || mc.player == null || mc.level == null || mc.screen != null && t < 0) return;
         t++;
+        if (MODE.equals("gallery")) gallery(mc);
+        else look(mc);
+    }
+
+    /** Новая маска: надевание от первого лица (анимация из Blender), вид со стороны, иконка. */
+    private static void look(Minecraft mc) {
         var c = mc.player.connection;
         switch (t) {
             case 40 -> {
                 c.sendCommand("gamemode survival");
-                c.sendCommand("time set 6000");
+                c.sendCommand("time set 13500");
                 c.sendCommand("gamerule doDaylightCycle false");
                 c.sendCommand("gamerule doMobSpawning false");
                 c.sendCommand("weather clear");
                 c.sendCommand("kill @e[type=!player]");
-                c.sendCommand("tp @s 0.5 -60 0.5 180 10");
+                c.sendCommand("tp @s 0.5 -60 0.5 180 0");
                 c.sendCommand("clear @s");
+                c.sendCommand("recipe give @s *");
                 c.sendCommand("give @s miragemask:mirage_mask");
                 c.sendCommand("give @s diamond_sword");
-                c.sendCommand("item replace entity @s armor.head with iron_helmet");
-                c.sendCommand("item replace entity @s armor.chest with iron_chestplate");
-                c.sendCommand("recipe give @s *");
                 mc.player.getInventory().selected = 0;
                 c.sendCommand("gamerule sendCommandFeedback false");
                 c.sendCommand("gamerule announceAdvancements false");
             }
-            case 85 -> clean();
-            case 80 -> mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
-            // --- видео 1: надевание со стороны, прилипание, превращение, шаги, «мобье» поведение на месте
-            case 90 -> record("01_transform_from_outside", 11);
-            case 104 -> mc.options.keyUse.setDown(true);
-            case 127 -> mc.options.keyUse.setDown(false);
-            case 175 -> mc.options.keyUp.setDown(true);
-            case 200 -> mc.options.keyUp.setDown(false);
-            case 128 -> shot("00_stick_helmet_a");
-            case 131 -> shot("00_stick_helmet_b");
-            case 134 -> shot("00_stick_helmet_c");
-            case 140 -> shot("00_hud_panel");
-            case 300 -> c.sendCommand("item replace entity @s armor.head with air");
-            // --- видео 2: H — лицо открыто (ободок сот), H — образ возвращается
-            case 320 -> record("02_reveal_and_resume", 6);
-            case 330 -> ClientInput.send(DisguiseManager.ACTION_REVEAL);
-            case 345 -> shot("00_hud_paused");
-            case 380 -> ClientInput.send(DisguiseManager.ACTION_REVEAL);
-            // --- видео 3: удар — маска рассыпается и возвращается в инвентарь
-            case 430 -> c.sendCommand("summon pig 0.5 -60 -1.4 {NoAI:1b}");
-            case 440 -> record("03_break", 4);
-            case 450 -> mc.level.getEntitiesOfClass(Pig.class, mc.player.getBoundingBox().inflate(4)).stream()
-                    .findFirst().ifPresent(pig -> mc.gameMode.attack(mc.player, pig));
-            case 500 -> { c.sendCommand("kill @e[type=pig]"); c.sendCommand("tp @s 10.5 -60 0.5 180 10"); }
+            case 70 -> { clean(); shot("a00_holding"); }
+            // --- от первого лица: кадры анимации из Blender + видео
+            case 78 -> record("fp_put_on_first_person", 3);
+            case 80 -> mc.options.keyUse.setDown(true);
+            case 81 -> shot("a01_fp_t01");
+            case 85 -> shot("a02_fp_t05");
+            case 90 -> shot("a03_fp_t10");
+            case 94 -> shot("a04_fp_t14");
+            case 97 -> shot("a05_fp_t17");
+            case 99 -> shot("a06_fp_t19");
+            case 102 -> mc.options.keyUse.setDown(false);
+            case 104 -> shot("a07_fp_stuck");
+            // --- со стороны: маска на лице, когда маскировка неактивна (H)
+            case 140 -> mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+            case 150 -> ClientInput.send(DisguiseManager.ACTION_REVEAL);
+            case 165 -> shot("b01_paused_front_nohelmet");
+            case 170 -> mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            case 180 -> shot("b02_paused_back_nohelmet");
+            case 185 -> { mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT); c.sendCommand("tp @s 0.5 -60 0.5 120 0"); }
+            case 195 -> shot("b03_paused_angle_nohelmet");
+            case 200 -> { c.sendCommand("tp @s 0.5 -60 0.5 180 0"); c.sendCommand("item replace entity @s armor.head with iron_helmet"); }
+            case 210 -> shot("b04_paused_front_helmet");
+            case 215 -> ClientInput.send(DisguiseManager.ACTION_REVEAL);
+            case 245 -> shot("b05_doll_no_aura");
+            case 250 -> { c.sendCommand("mirage off"); c.sendCommand("item replace entity @s armor.head with air"); }
+            // --- со стороны: прилипание (команда, без руки) + видео
+            case 270 -> record("tp_stick_front", 3);
+            case 275 -> c.sendCommand("mirage on");
+            case 279 -> shot("c01_stick_a");
+            case 282 -> shot("c02_stick_b");
+            case 285 -> shot("c03_stick_c");
+            case 289 -> shot("c04_stick_d");
+            case 300 -> c.sendCommand("mirage off");
+            // --- со стороны: надевание рукой (видео)
+            case 320 -> { c.sendCommand("mirage reset"); mc.player.getInventory().selected = 0; }
+            case 330 -> record("tp_put_on_front", 4);
+            case 334 -> mc.options.keyUse.setDown(true);
+            case 340 -> shot("c05_tp_hand_raise_a");
+            case 346 -> shot("c06_tp_hand_raise_b");
+            case 352 -> shot("c07_tp_hand_raise_c");
+            case 358 -> mc.options.keyUse.setDown(false);
+            case 380 -> { c.sendCommand("mirage off"); mc.options.setCameraType(CameraType.FIRST_PERSON); }
+            case 395 -> mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+            case 405 -> shot("d01_inventory");
+            case 410 -> { mc.setScreen(null); }
+            case 430 -> mc.stop();
             default -> {}
         }
-        // --- галерея всех обликов (вид со стороны, F5)
+    }
+
+    private static void gallery(Minecraft mc) {
+        var c = mc.player.connection;
+        if (t == 40) {
+            c.sendCommand("time set 6000"); c.sendCommand("gamerule doDaylightCycle false");
+            c.sendCommand("kill @e[type=!player]"); c.sendCommand("tp @s 10.5 -60 0.5 180 10");
+            c.sendCommand("recipe give @s *"); c.sendCommand("gamerule sendCommandFeedback false");
+        }
+        if (t == 60) mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
         if (t >= GALLERY_START) {
             int i = (t - GALLERY_START) / STEP, phase = (t - GALLERY_START) % STEP;
             if (i >= GALLERY.size()) {
@@ -106,11 +142,11 @@ public final class AutoTest {
                 return;
             }
             String[] entry = GALLERY.get(i);
-            if (phase == 0) mc.getToasts().clear();
             if (phase == 0) {
+                mc.getToasts().clear();
                 if (entry[0].equals("water") && !GALLERY.get(i - 1)[0].equals("water")) {
                     c.sendCommand("fill 3 -61 -9 18 -61 9 water");
-                    c.sendCommand("tp @s 10.5 -61 0.5 180 -50");   // камера сверху — видно мобов в воде
+                    c.sendCommand("tp @s 10.5 -61 0.5 180 -50");
                 }
                 if (entry[0].equals("player")) {
                     c.sendCommand("tp @s 30.5 -60 0.5 180 10");
@@ -119,7 +155,6 @@ public final class AutoTest {
                     c.sendCommand("mirage as minecraft:" + entry[1]);
                 }
             }
-            if (i == 0 && (phase == 3 || phase == 6 || phase == 9 || phase == 14)) shot("00_stick_nohelmet_" + phase);
             if (phase == STEP - 4) shot(String.format("g%02d_%s_%s", i + 1, entry[0], entry[1]));
         }
     }

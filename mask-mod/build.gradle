@@ -24,6 +24,7 @@ neoForge {
             client()
             gameDirectory = project.file('run/testclient')
             systemProperty 'miragemask.devtest', 'true'
+            systemProperty 'miragemask.devtest.mode', project.findProperty('mode') ?: 'look'
             programArguments.addAll '--username', 'MaskTester', '--quickPlaySingleplayer', 'test', '--width', '1280', '--height', '720'
         }
         server {
