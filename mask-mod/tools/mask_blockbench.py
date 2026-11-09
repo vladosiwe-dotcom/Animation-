@@ -25,7 +25,7 @@ RES = os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask")
 
 # ---------------------------------------------------------------- форма маски
 CX = 8.0
-Y_CHIN, Y_TOP = 0.15, 7.75
+Y_CHIN, Y_TOP = 0.45, 7.35
 
 
 def half_width(y):
@@ -34,9 +34,9 @@ def half_width(y):
     if t < 0 or t > 1:
         return -1
     if t < 0.55:
-        return 2.1 + 2.75 * math.sin(t / 0.55 * math.pi / 2)
+        return 1.7 + 2.05 * math.sin(t / 0.55 * math.pi / 2)
     k = (t - 0.55) / 0.45
-    return 4.85 * math.sqrt(max(0.0, 1 - k ** 3))
+    return 3.75 * math.sqrt(max(0.0, 1 - k ** 3))
 
 
 def inside(x, y):
@@ -68,8 +68,8 @@ def eye_val(x, y):
     return best
 
 
-HEX_R = 2.55
-HEX_ORIGIN = (8.0, 3.7)
+HEX_R = 2.15
+HEX_ORIGIN = (8.0, 3.9)
 
 
 def hex_edge(x, y):
@@ -108,17 +108,7 @@ def shade_pixel(x, y, scale):
     if not inside(x, y):
         return (0, 0, 0, 0), (0, 0, 0, 0)
     ed = edge_dist(x, y)
-    if ed < 1.05 * px:
-        return (252, 253, 255, 255), (255, 255, 255, 255)          # яркий обод
-    if ed < 1.9 * px:
-        return (196, 206, 255, 235), (150, 170, 255, 170)          # ореол обода
-    ev = eye_val(x, y)
-    ring = abs(math.sqrt(ev) - 1) * 0.78
-    if ev < 1.25 and ring < 0.62 * px:
-        return (246, 248, 255, 255), (255, 255, 255, 255)          # обводка линзы
-    if ev < 1:
-        hi = 40 if (x + y) % 1.6 < 0.35 and y > EYES[0][1] else 0
-        return (38 + hi, 46 + hi, 88 + hi, 205), (0, 0, 0, 0)       # тёмная линза
+    edge_tint = 18 if ed < 1.05 * px else 0                         # край чуть светлее, без обводки
     he = hex_edge(x, y)
     if he < 0.42 * px:
         return (240, 244, 255, 255), (255, 255, 255, 255)          # ребро соты
@@ -127,8 +117,7 @@ def shade_pixel(x, y, scale):
     facet, cell = hex_facet(x, y)
     base = 150 + [14, 4, -10, -16, -4, 10][facet] + cell * 3
     streak = 34 if abs((x - 4.5) - (7.6 - y) * 0.9) < 0.75 else 0  # диагональный блик, как на референсе
-    nose = 10 if abs(x - CX) < 0.6 and 2.0 < y < 5.4 else 0
-    v = base + streak + nose
+    v = base + streak + edge_tint
     return (int(v * 0.86), int(v * 0.9), min(255, int(v * 1.22)), 112 + streak * 2), (0, 0, 0, 0)
 
 
@@ -169,7 +158,7 @@ def paint_icon():
     """Иконка 32x32: маска анфас, тёмная обводка, крепления по бокам."""
     S = 32
     img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    scale = 2.35                       # пикселей иконки на пиксель модели
+    scale = 3.0                        # пикселей иконки на пиксель модели
     ox, oy = S / 2 - CX * scale, S / 2 + 3.95 * scale
     for py in range(S):
         for pxl in range(S):
@@ -191,7 +180,7 @@ def paint_icon():
                     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
                 img.putpixel((pxl, py), (14, 14, 20, 255))
     # крепления
-    for x0 in (2, 27):
+    for x0 in (3, 26):
         for py in range(12, 21):
             for pxl in range(x0, x0 + 3):
                 if img.getpixel((pxl, py))[3] < 200:
@@ -204,15 +193,15 @@ def paint_icon():
 # ---------------------------------------------------------------- геометрия (кубы)
 def depth(x, part):
     """Передняя поверхность (z) полоски: середина вперёд, края назад; лоб и подбородок уходят назад."""
-    nx = (x - CX) / 5.0
-    z = 4.0 - (0.35 + 1.15 * max(0.0, 1 - nx * nx))
-    return z + {"brow": 0.35, "mid": 0.0, "chin": 0.5}[part]
+    nx = (x - CX) / 4.5
+    z = 4.0 - (0.25 + 0.8 * max(0.0, 1 - nx * nx))          # плотнее к лицу
+    return z + {"brow": 0.25, "mid": 0.0, "chin": 0.35}[part]
 
 
 def elements():
     els = []
     seg = [("chin", Y_CHIN, 2.4), ("mid", 2.4, 6.0), ("brow", 6.0, Y_TOP)]
-    for xi in range(3, 13):
+    for xi in range(4, 12):
         x0, x1 = float(xi), float(xi + 1)
         xs = [x0 + 0.05 + 0.1 * k for k in range(10)]
         ys = [y / 20 for y in range(int(Y_CHIN * 20), int(Y_TOP * 20) + 1)]
@@ -227,12 +216,9 @@ def elements():
             zf = round(depth((x0 + x1) / 2, part), 3)
             els.append(cube(f"glass_{xi}_{part}", [x0, round(a, 3), zf], [x1, round(b, 3), round(zf + 0.45, 3)],
                             "glass", top_rim=(b >= yhi - 0.01), bottom_rim=(a <= ylo + 0.01)))
-    # переносица — небольшой выступ по центру
-    zn = round(depth(CX, "mid") - 0.35, 3)
-    els.append(cube("nose_bridge", [7.5, 2.6, zn], [8.5, 5.2, zn + 0.4], "glass", top_rim=False, bottom_rim=False))
     # крепления по бокам: от края маски назад к ушам
-    for s, (x0, x1) in (("right", (2.35, 3.25)), ("left", (12.75, 13.65))):
-        els.append(cube(f"clip_{s}", [x0, 3.0, 3.6], [x1, 6.0, 8.6], "clip", outer="west" if s == "right" else "east"))
+    for s, (x0, x1) in (("right", (3.2, 3.95)), ("left", (12.05, 12.8))):
+        els.append(cube(f"clip_{s}", [x0, 3.3, 3.9], [x1, 5.6, 8.4], "clip", outer="west" if s == "right" else "east"))
     return els
 
 
@@ -286,7 +272,7 @@ def main():
         "textures": {"mask": "miragemask:entity/mirage_mask", "particle": "miragemask:item/mirage_mask"},
         "elements": els,
         "display": {},
-        "mirage_mask": {"head_cube": [4, 0, 4, 12, 8, 12], "to_head_space": "(x-8, -y, z-8)", "center": [8, 4.0, 2.9]},
+        "mirage_mask": {"head_cube": [4, 0, 4, 12, 8, 12], "to_head_space": "(x-8, -y, z-8)", "center": [8, 3.9, 2.9]},
     }
     with open(os.path.join(RES, "geo", "mirage_mask.json"), "w") as f:
         json.dump(model, f, indent=1)
