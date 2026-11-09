@@ -1,0 +1,51 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = mod_version
+group = mod_group_id
+base { archivesName = "${mod_id}-neoforge-${minecraft_version}" }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+// devtest: автоматический сценарий для проверки в клиенте (НЕ попадает в готовый jar)
+sourceSets { devtest }
+dependencies { devtestImplementation sourceSets.main.output }
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('run/client')
+        }
+        testClient {
+            client()
+            gameDirectory = project.file('run/testclient')
+            systemProperty 'miragemask.devtest', 'true'
+            programArguments.addAll '--username', 'MaskTester', '--quickPlaySingleplayer', 'test', '--width', '1280', '--height', '720'
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = project.file('run/server')
+        }
+        configureEach {
+            systemProperty 'forge.logging.console.level', 'info'
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.devtest)
+        }
+    }
+}
+
+neoForge.addModdingDependenciesTo(sourceSets.devtest)
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}

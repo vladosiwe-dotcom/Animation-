@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "miragemask"
+version = "1.0.0"
+displayName = "Mirage Mask"
+authors = "vladosiwe"
+description = '''
+Маска Миражей: надень маску из шестиугольников и стань для всех мобом, жителем или копией другого игрока на 60 секунд.
+'''
+
+[[dependencies.miragemask]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.miragemask]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"

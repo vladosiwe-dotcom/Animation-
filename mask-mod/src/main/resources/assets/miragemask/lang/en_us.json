@@ -1,0 +1,11 @@
+{
+  "item.miragemask.mirage_mask": "Mirage Mask",
+  "item.miragemask.mirage_mask.desc1": "Hold right-click to put the mask on for 60 seconds",
+  "item.miragemask.mirage_mask.desc2": "Everyone sees you as a mob, a villager or a copy of another player - the look adapts to your surroundings",
+  "item.miragemask.mirage_mask.desc3": "Attacking or shooting breaks the mask. Recharges for 2 minutes after it fades",
+  "message.miragemask.on": "Mask on: you are a mirage",
+  "message.miragemask.off": "The mask dissolved",
+  "message.miragemask.broken": "The mask shattered!",
+  "message.miragemask.left": "Mask: %s seconds left",
+  "message.miragemask.already": "The mask is already on your face"
+}

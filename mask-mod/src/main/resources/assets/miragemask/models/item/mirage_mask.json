@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "miragemask:item/mirage_mask"
+  },
+  "display": {
+    "firstperson_righthand": { "rotation": [0, -70, 8], "translation": [1.13, 2.6, 1.13], "scale": [0.55, 0.55, 0.55] },
+    "firstperson_lefthand": { "rotation": [0, 70, -8], "translation": [1.13, 2.6, 1.13], "scale": [0.55, 0.55, 0.55] },
+    "head": { "rotation": [0, 180, 0], "translation": [0, 13, 7], "scale": [1, 1, 1] }
+  }
+}
