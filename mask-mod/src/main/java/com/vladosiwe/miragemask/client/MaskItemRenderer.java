@@ -20,9 +20,9 @@ public class MaskItemRenderer extends BlockEntityWithoutLevelRenderer {
         pose.pushPose();
         pose.translate(0.5F, 0.5F, 0.5F);
         pose.mulPose(Axis.YP.rotationDegrees(180));   // лицевая сторона маски — к зрителю (+Z)
-        float s = 1.55F;
+        float s = 2.0F;
         pose.scale(s, -s, s);                          // в пикселях головы ось Y смотрит вниз
-        pose.translate(0, 4 / 16F, 3.0F / 16F);        // центр лица — в центр предмета
+        pose.translate(0, 3.1F / 16F, 3.6F / 16F);     // центр лица — в центр предмета
         MaskMesh.render(pose, buffers, MaskMesh.Mode.FULL, 0, ClientDisguises.time(0), 1.0F, ctx == ItemDisplayContext.GUI);
         pose.popPose();
     }

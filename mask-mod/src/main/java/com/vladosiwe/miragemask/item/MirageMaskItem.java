@@ -34,9 +34,6 @@ public class MirageMaskItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (DisguiseManager.isDisguised(player)) {
-            if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("message.miragemask.already").withStyle(ChatFormatting.AQUA), true);
-            }
             return InteractionResultHolder.fail(stack);
         }
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0F, 0.6F);

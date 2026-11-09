@@ -65,17 +65,22 @@ public final class DisguiseManager {
 
     // ------------------------------------------------------------------ включение / выключение
     public static boolean activate(ServerPlayer player, net.minecraft.world.item.ItemStack mask) {
+        return activate(player, mask, null);
+    }
+
+    public static boolean activate(ServerPlayer player, net.minecraft.world.item.ItemStack mask, Disguise forced) {
         if (ACTIVE.containsKey(player.getUUID())) return false;
         State s = new State();
         s.mask = mask;
         s.total = com.vladosiwe.miragemask.item.MirageMaskItem.DURATION_TICKS;
         s.endTick = player.serverLevel().getGameTime() + s.total;
         ACTIVE.put(player.getUUID(), s);
-        apply(player, s, DisguiseContext.choose(player, DisguiseContext.contextKey(player), player.getRandom()),
+        if (forced != null) s.locked = true;
+        apply(player, s, forced != null ? forced
+                : DisguiseContext.choose(player, DisguiseContext.contextKey(player), player.getRandom()),
                 DisguisePayload.FLASH_ACTIVATE);
         play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 1.0F, 0.8F);
         play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 1.2F);
-        player.displayClientMessage(Component.translatable("message.miragemask.on").withStyle(ChatFormatting.AQUA), true);
         return true;
     }
 
@@ -92,10 +97,8 @@ public final class DisguiseManager {
         if (broken) {
             play(player, SoundEvents.GLASS_BREAK, 1.0F, 0.7F);
             play(player, SoundEvents.AMETHYST_CLUSTER_BREAK, 1.0F, 0.6F);
-            player.displayClientMessage(Component.translatable("message.miragemask.broken").withStyle(ChatFormatting.RED), true);
         } else {
             play(player, SoundEvents.BEACON_DEACTIVATE, 0.8F, 1.6F);
-            player.displayClientMessage(Component.translatable("message.miragemask.off").withStyle(ChatFormatting.GRAY), true);
         }
     }
 
@@ -129,19 +132,15 @@ public final class DisguiseManager {
         if (s == null) return;
         if (action == ACTION_LOCK) {
             s.locked = !s.locked;
-            player.displayClientMessage(Component.translatable(s.locked ? "message.miragemask.locked" : "message.miragemask.unlocked")
-                    .withStyle(ChatFormatting.AQUA), true);
             play(player, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8F, s.locked ? 0.7F : 1.3F);
             sync(player, s, DisguisePayload.FLASH_NONE);
         } else if (action == ACTION_REVEAL) {
             s.paused = !s.paused;
             if (s.paused) {
-                player.displayClientMessage(Component.translatable("message.miragemask.revealed").withStyle(ChatFormatting.AQUA), true);
                 play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 0.6F);
                 hexBurst(player, 16);
                 sync(player, s, DisguisePayload.FLASH_PAUSE);
             } else {
-                player.displayClientMessage(Component.translatable("message.miragemask.resumed").withStyle(ChatFormatting.AQUA), true);
                 play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.9F, 1.1F);
                 String key = DisguiseContext.contextKey(player);
                 if (!s.locked && !key.equals(s.disguise.context())) {
@@ -169,8 +168,6 @@ public final class DisguiseManager {
         }
         if (left <= WARN_TICKS && left % 20 == 0) {
             int sec = (int) (left / 20);
-            player.displayClientMessage(Component.translatable("message.miragemask.left", sec)
-                    .withStyle(sec <= 3 ? ChatFormatting.RED : ChatFormatting.GOLD), true);
             player.playNotifySound(SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.PLAYERS, 0.6F, sec == 10 ? 0.7F : 1.0F + (10 - sec) * 0.05F);
         }
         if (s.paused) return; // лицо открыто: облик, звуки и реакция мобов на паузе
@@ -308,10 +305,52 @@ public final class DisguiseManager {
                         .executes(ctx -> mirage(java.util.List.of(ctx.getSource().getPlayerOrException()), true))
                         .then(net.minecraft.commands.Commands.argument("targets", net.minecraft.commands.arguments.EntityArgument.players())
                                 .executes(ctx -> mirage(net.minecraft.commands.arguments.EntityArgument.getPlayers(ctx, "targets"), true))))
+                .then(net.minecraft.commands.Commands.literal("as")
+                        .then(net.minecraft.commands.Commands.argument("mob", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+                                .suggests(net.minecraft.commands.synchronization.SuggestionProviders.SUMMONABLE_ENTITIES)
+                                .executes(DisguiseManager::mirageAs)))
+                .then(net.minecraft.commands.Commands.literal("copy")
+                        .then(net.minecraft.commands.Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.player())
+                                .executes(DisguiseManager::mirageCopy)))
                 .then(net.minecraft.commands.Commands.literal("off")
                         .executes(ctx -> mirage(java.util.List.of(ctx.getSource().getPlayerOrException()), false))
                         .then(net.minecraft.commands.Commands.argument("targets", net.minecraft.commands.arguments.EntityArgument.players())
                                 .executes(ctx -> mirage(net.minecraft.commands.arguments.EntityArgument.getPlayers(ctx, "targets"), false)))));
+    }
+
+    /** Принудительный облик (команда): облик закрепляется, таймер начинается заново. */
+    public static void force(ServerPlayer player, Disguise d) {
+        State s = ACTIVE.get(player.getUUID());
+        if (s == null) {
+            activate(player, net.minecraft.world.item.ItemStack.EMPTY, d);
+            return;
+        }
+        s.locked = true;
+        s.paused = false;
+        s.endTick = player.serverLevel().getGameTime() + s.total;
+        apply(player, s, d, DisguisePayload.FLASH_CHANGE);
+        play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.7F, 1.3F);
+    }
+
+    private static int mirageAs(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        net.minecraft.resources.ResourceLocation id = net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "mob");
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(id).orElse(null);
+        if (type == null || !(type.create(player.serverLevel()) instanceof LivingEntity) || type == EntityType.PLAYER) {
+            ctx.getSource().sendFailure(Component.translatable("command.miragemask.bad_mob", id.toString()));
+            return 0;
+        }
+        force(player, Disguise.mob(id, "forced"));
+        return 1;
+    }
+
+    private static int mirageCopy(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        ServerPlayer target = net.minecraft.commands.arguments.EntityArgument.getPlayer(ctx, "target");
+        force(player, DisguiseContext.copyOf(target, "forced"));
+        return 1;
     }
 
     private static int mirage(java.util.Collection<ServerPlayer> players, boolean on) {

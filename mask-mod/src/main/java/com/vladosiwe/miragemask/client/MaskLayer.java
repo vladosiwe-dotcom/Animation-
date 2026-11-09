@@ -20,6 +20,12 @@ public class MaskLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<Abs
         if (v == null || player.isInvisible()) return;
         pose.pushPose();
         getParentModel().head.translateAndRotate(pose);
+        if (!player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty()) {
+            // маска надевается поверх шлема: чуть крупнее, вокруг центра головы
+            pose.translate(0, -4 / 16F, 0);
+            pose.scale(1.14F, 1.14F, 1.14F);
+            pose.translate(0, 4 / 16F, 0);
+        }
         MaskMesh.render(pose, buffers, v.mode(), v.progress(), ClientDisguises.time(partialTick), 1.0F);
         pose.popPose();
     }

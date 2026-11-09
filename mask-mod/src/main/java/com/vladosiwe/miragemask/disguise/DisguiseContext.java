@@ -71,11 +71,7 @@ public final class DisguiseContext {
         switch (key) {
             case "players" -> {
                 List<ServerPlayer> candidates = otherPlayerCandidates(player);
-                ServerPlayer target = candidates.get(random.nextInt(candidates.size()));
-                List<ItemStack> gear = new ArrayList<>();
-                for (EquipmentSlot slot : SLOTS) gear.add(target.getItemBySlot(slot).copy());
-                return new Disguise(Disguise.Kind.PLAYER, Disguise.PLAYER_TYPE, target.getUUID(),
-                        target.getGameProfile().getName(), gear, key);
+                return copyOf(candidates.get(random.nextInt(candidates.size())), key);
             }
             case "nether" -> {
                 return mob(pickNearby(player, NETHER, random,
@@ -113,6 +109,14 @@ public final class DisguiseContext {
                 return mob(pickNearby(player, PASSIVE, random, fallback), key);
             }
         }
+    }
+
+    /** Копия игрока: скин (по UUID), ник, броня и предметы в руках. */
+    public static Disguise copyOf(ServerPlayer target, String key) {
+        List<ItemStack> gear = new ArrayList<>();
+        for (EquipmentSlot slot : SLOTS) gear.add(target.getItemBySlot(slot).copy());
+        return new Disguise(Disguise.Kind.PLAYER, Disguise.PLAYER_TYPE, target.getUUID(),
+                target.getGameProfile().getName(), gear, key);
     }
 
     static final EquipmentSlot[] SLOTS = {EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.FEET,

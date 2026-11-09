@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import org.joml.Matrix4f;
 
 /**
@@ -27,29 +28,51 @@ public final class HexOverlay {
     private static int waveColor = CYAN;
     private static int ticksLeft, total;
     private static Component label = Component.empty();
+    // HUD-панель: всплывающее событие и затухание после снятия маски
+    private static Component toast = Component.empty();
+    private static int toastStart = -1000, toastColor = ICE;
+    private static int endedAt = -1000;
+    private static boolean endedBroken;
 
     private HexOverlay() {}
 
     static void start(DisguisePayload p, Component what) {
         boolean wasActive = active;
+        wasLocked = locked;
         active = true;
         paused = p.paused();
         locked = p.locked();
         ticksLeft = p.ticksLeft();
         total = Math.max(1, p.totalTicks());
+        boolean lockChanged = wasActive && locked != wasLocked;
         label = what;
         switch (p.flash()) {
-            case DisguisePayload.FLASH_ACTIVATE -> stickStart = ticks;
-            case DisguisePayload.FLASH_CHANGE, DisguisePayload.FLASH_RESUME -> wave(CYAN);
-            case DisguisePayload.FLASH_PAUSE -> wave(ICE);
-            default -> { if (!wasActive) wave(CYAN); }
+            case DisguisePayload.FLASH_ACTIVATE -> { stickStart = ticks; toast("hud.miragemask.toast.on", CYAN); }
+            case DisguisePayload.FLASH_CHANGE -> { wave(CYAN); toast("hud.miragemask.toast.change", CYAN); }
+            case DisguisePayload.FLASH_RESUME -> { wave(CYAN); toast("hud.miragemask.toast.resumed", CYAN); }
+            case DisguisePayload.FLASH_PAUSE -> { wave(ICE); toast("hud.miragemask.toast.revealed", ICE); }
+            default -> {
+                if (!wasActive) wave(CYAN);
+                if (lockChanged) toast(locked ? "hud.miragemask.toast.locked" : "hud.miragemask.toast.unlocked", ICE);
+            }
         }
+    }
+
+    private static boolean wasLocked;
+
+    private static void toast(String key, int color) {
+        toast = Component.translatable(key);
+        toastStart = ticks;
+        toastColor = color;
     }
 
     static void stop(byte flash) {
         active = false;
         paused = false;
-        wave(flash == DisguisePayload.FLASH_BREAK ? RED : ICE);
+        endedBroken = flash == DisguisePayload.FLASH_BREAK;
+        endedAt = ticks;
+        wave(endedBroken ? RED : ICE);
+        toast(endedBroken ? "hud.miragemask.toast.broken" : "hud.miragemask.toast.off", endedBroken ? RED : ICE);
     }
 
     static void reset() {
@@ -83,7 +106,10 @@ public final class HexOverlay {
         float stick = ticks - stickStart + pt;
         boolean waving = age >= 0 && age < 30;
         boolean sticking = stick >= 0 && stick < 34;
-        if (!active && !waving && !sticking) return;
+        if (!active && !waving && !sticking) {
+            renderPanel(g, mc, pt, false, 0);   // панель ещё гаснет после снятия маски
+            return;
+        }
 
         int w = g.guiWidth(), h = g.guiHeight();
         float r = h / 9.0F;
@@ -145,17 +171,75 @@ public final class HexOverlay {
         }
         g.flush();
 
-        if (active) {
-            int sec = (ticksLeft + 19) / 20;
-            Component line = Component.literal("⬢ " + sec + "с  ").append(label);
-            if (locked) line = line.copy().append(Component.translatable("hud.miragemask.locked"));
-            if (paused) line = line.copy().append(Component.translatable("hud.miragemask.paused"));
-            int tc = warning ? lerpColor(0xFFD27A, RED, pulse) : ICE;
-            g.drawCenteredString(mc.font, line, w / 2, 6, 0xFF000000 | tc);
-            int barW = 100, x0 = w / 2 - barW / 2;
-            g.fill(x0, 17, x0 + barW, 19, 0x66000000);
-            g.fill(x0, 17, x0 + (int) (barW * (ticksLeft / (float) total)), 19, 0xFF000000 | (warning ? RED : CYAN));
+        renderPanel(g, mc, pt, warning, pulse);
+    }
+
+    // ---------------------------------------------------------------- HUD-панель «какой облик надет»
+    private static final int PANEL_X = 6, PANEL_Y = 6, PANEL_W = 138, PANEL_H = 46;
+
+    private static void renderPanel(GuiGraphics g, Minecraft mc, float pt, boolean warning, float pulse) {
+        float since = ticks - endedAt + pt;
+        float fade = active ? 1 : Mth.clamp(1 - (since - 30) / 15, 0, 1);   // после снятия ещё ~2 с
+        if (fade <= 0) return;
+        int frame = !active ? (endedBroken ? RED : ICE) : warning ? lerpColor(CYAN, RED, pulse) : paused ? ICE : CYAN;
+        int x = PANEL_X, y = PANEL_Y;
+        g.fill(x, y, x + PANEL_W, y + PANEL_H, argb(0x061426, 0.62F * fade));
+        g.fill(x, y, x + PANEL_W, y + 1, argb(frame, 0.9F * fade));
+        g.fill(x, y + PANEL_H - 1, x + PANEL_W, y + PANEL_H, argb(frame, 0.5F * fade));
+
+        // шестиугольная рамка-портрет с живой фигуркой облика
+        float hx = x + 23, hy = y + PANEL_H / 2.0F, hr = 20;
+        Matrix4f m = g.pose().last().pose();
+        VertexConsumer vc = g.bufferSource().getBuffer(RenderType.gui());
+        hexFill(vc, m, hx, hy, hr, argb(0x0A3A6E, 0.85F * fade), argb(0x041626, 0.85F * fade));
+        hexOutline(vc, m, hx, hy, hr, 2.0F, argb(frame, fade));
+        hexOutline(vc, m, hx, hy, hr + 2.5F, 1.0F, argb(frame, 0.35F * fade));
+        g.flush();
+        LivingEntity doll = ClientDisguises.localDoll();
+        if (active && doll != null && !paused) {
+            renderPortrait(g, doll, hx, hy, pt);
+        } else {
+            g.drawCenteredString(mc.font, active ? "◉" : "✖", (int) hx, (int) hy - 4, argb(frame, fade));
         }
+
+        int tx = x + 48;
+        Component name = active ? label : Component.translatable(endedBroken ? "hud.miragemask.broken" : "hud.miragemask.off");
+        g.drawString(mc.font, name, tx, y + 6, argb(active ? 0xFFFFFF : frame, fade), true);
+        if (active) {
+            String status = paused ? Component.translatable("hud.miragemask.paused").getString()
+                    : locked ? Component.translatable("hud.miragemask.locked").getString()
+                    : Component.translatable("hud.miragemask.adaptive").getString();
+            g.drawString(mc.font, status, tx, y + 18, argb(paused ? ICE : locked ? 0xFFD27A : 0x7FB8D8, fade), false);
+            int sec = (ticksLeft + 19) / 20;
+            int barW = PANEL_W - 48 - 26, by = y + 33;
+            g.fill(tx, by, tx + barW, by + 3, argb(0x000000, 0.6F * fade));
+            g.fill(tx, by, tx + (int) (barW * (ticksLeft / (float) total)), by + 3, argb(warning ? RED : CYAN, fade));
+            g.drawString(mc.font, sec + "\u0441", tx + barW + 4, by - 3, argb(warning ? lerpColor(0xFFD27A, RED, pulse) : ICE, fade), true);
+        }
+        // всплывающее событие под панелью
+        float ta = ticks - toastStart + pt;
+        if (ta >= 0 && ta < 50) {
+            float a = Mth.clamp(Math.min(ta / 4, (50 - ta) / 10), 0, 1);
+            g.drawString(mc.font, toast, x + 2, y + PANEL_H + 4, argb(toastColor, a), true);
+        }
+    }
+
+    private static void renderPortrait(GuiGraphics g, LivingEntity e, float cx, float cy, float pt) {
+        float body = e.yBodyRot, bodyO = e.yBodyRotO, head = e.yHeadRot, headO = e.yHeadRotO;
+        float yRot = e.getYRot(), yRotO = e.yRotO, xRot = e.getXRot(), xRotO = e.xRotO;
+        float spin = 180 + Mth.sin((ticks + pt) * 0.04F) * 35;
+        e.yBodyRot = e.yBodyRotO = spin;
+        e.yHeadRot = e.yHeadRotO = spin;
+        e.setYRot(spin); e.yRotO = spin;
+        e.setXRot(0); e.xRotO = 0;
+        float size = Math.max(e.getBbHeight(), e.getBbWidth() * 1.15F);
+        float scale = 26.0F / Math.max(0.5F, size);
+        g.enableScissor((int) cx - 18, (int) cy - 18, (int) cx + 18, (int) cy + 18);
+        net.minecraft.client.gui.screens.inventory.InventoryScreen.renderEntityInInventory(g, cx, cy + 13, scale,
+                new org.joml.Vector3f(0, 0, 0), new org.joml.Quaternionf().rotateZ((float) Math.PI).rotateX(0.18F), null, e);
+        g.disableScissor();
+        e.yBodyRot = body; e.yBodyRotO = bodyO; e.yHeadRot = head; e.yHeadRotO = headO;
+        e.setYRot(yRot); e.yRotO = yRotO; e.setXRot(xRot); e.xRotO = xRotO;
     }
 
     private static float backOut(float x) {

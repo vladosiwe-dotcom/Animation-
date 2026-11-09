@@ -23,31 +23,32 @@ public final class MaskMesh {
     private record Tile(float cx, float cy, float cz, float tx, float tz, float nx, float nz,
                         float u, float v, float dist, float hash, boolean ring) {}
 
-    private static final float R = 1.02F;       // радиус соты (px)
+    private static final float R = 0.78F;       // радиус соты (px) — мелкие соты, плотно по лицу
     private static final List<Tile> TILES = build();
 
     private MaskMesh() {}
 
+    /** Только лицо: от бровей до подбородка и от щеки до щеки — макушка и виски открыты. */
     private static List<Tile> build() {
         List<Tile> out = new ArrayList<>();
         float colStep = (float) (Math.sqrt(3) * R), rowStep = 1.5F * R;
-        for (int row = 0; row < 8; row++) {
-            float v = -8.15F + row * rowStep;
-            if (v > 0.4F) break;                                                  // не ниже подбородка
+        for (int row = 0; row < 12; row++) {
+            float v = -6.35F + row * rowStep;
+            if (v > 0.3F) break;                                                  // не ниже подбородка
             for (int col = -6; col <= 6; col++) {
                 float u = col * colStep + ((row & 1) == 1 ? colStep / 2 : 0);
                 float au = Math.abs(u);
-                if (au > 1.0F && au < 3.6F && v > -5.3F && v < -2.7F) continue;   // глаза
-                if (au < 2.0F && v > -2.0F && v < -0.4F) continue;                // рот
-                double theta = u / 4.45;
-                if (Math.abs(theta) > 1.2) continue;                               // обхват до висков
+                if (au > 3.75F) continue;                                         // щёки, но не виски
+                if (au > 0.85F && au < 3.35F && v > -4.95F && v < -3.05F) continue; // глаза
+                if (au < 1.7F && v > -1.85F && v < -0.65F) continue;              // рот
+                double theta = u / 4.3;
                 float[] p = shell(theta), p2 = shell(theta + 0.01);
                 float tx = p2[0] - p[0], tz = p2[1] - p[1];
                 float len = (float) Math.sqrt(tx * tx + tz * tz);
                 tx /= len; tz /= len;
-                float dist = (float) Math.sqrt(u * u + (v + 4) * (v + 4)) / 6.5F;
+                float dist = (float) Math.sqrt(u * u + (v + 3.2F) * (v + 3.2F)) / 4.8F;
                 float hash = Mth.frac(Mth.sin(col * 12.9898F + row * 78.233F) * 43758.547F);
-                boolean ring = au > 3.3F || v < -7.0F || v > -0.9F;
+                boolean ring = au > 2.9F || v < -5.4F || v > -0.5F;
                 out.add(new Tile(p[0], v, p[1], tx, tz, tz, -tx, u, v, dist, hash, ring));
             }
         }
@@ -58,7 +59,7 @@ public final class MaskMesh {
     private static float[] shell(double theta) {
         double s = Math.sin(theta), c = Math.cos(theta);
         double d = Math.pow(Math.pow(Math.abs(s), 4) + Math.pow(Math.abs(c), 4), -0.25);
-        double r = 4.32;
+        double r = 4.56;                 // поверх второго слоя скина (шляпа = 4.5 px)
         return new float[] {(float) (r * d * s), (float) (-r * d * c)};
     }
 
@@ -84,14 +85,14 @@ public final class MaskMesh {
         }
         VertexConsumer vc = buffers.getBuffer(MaskRenderTypes.ENERGY);
         for (Tile t : TILES) {
-            float k = 1, off = 0.12F, a = 1;
+            float k = 1, off = 0.06F, a = 1;
             float flicker = 0.78F + 0.22F * Mth.sin(time * 0.35F + t.hash * 40);
             switch (mode) {
                 case STICK -> {
                     float q = Mth.clamp((progress * 1.6F - t.dist * 0.9F) / 0.45F, 0, 1);
                     if (q <= 0) continue;
                     k = backOut(q);                       // соты «шлёпаются» на лицо с отскоком
-                    off = 0.12F + (1 - q) * 3.5F;
+                    off = 0.06F + (1 - q) * 3.0F;
                     a = q;
                 }
                 case RING -> {
@@ -99,7 +100,7 @@ public final class MaskMesh {
                     a = 0.55F * flicker * (t.hash > 0.85F && Mth.sin(time * 0.9F + t.hash * 50) > 0.6F ? 0.2F : 1);
                 }
                 case SHATTER -> {
-                    off = 0.12F + progress * (4 + t.hash * 6);
+                    off = 0.06F + progress * (4 + t.hash * 6);
                     k = 1 - progress * 0.7F;
                     a = 1 - progress;
                 }
@@ -115,7 +116,7 @@ public final class MaskMesh {
             ring(vc, m, t, cx, cy, cz, R * k * 0.79F, R * k * 0.86F, argb(HOT, a * 0.35F));
             // аура: второй слой сот чуть дальше от лица, «дрожит» как искажённый воздух
             if (mode != Mode.SHATTER) {
-                float wob = 0.55F + 0.35F * Mth.sin(time * 0.22F + t.hash * 6.28F);
+                float wob = 0.4F + 0.25F * Mth.sin(time * 0.22F + t.hash * 6.28F);
                 float jx = 0.12F * Mth.sin(time * 0.5F + t.u), jy = 0.12F * Mth.cos(time * 0.43F + t.v * 1.7F);
                 ring(vc, m, t, cx + t.nx * wob + jx, cy + jy, cz + t.nz * wob, R * k * 0.95F, R * k * 1.05F,
                         argb(EDGE, a * 0.16F));

@@ -129,6 +129,14 @@ public final class ClientDisguises {
         return null;
     }
 
+    /** Кукла локального игрока — для портрета в HUD. */
+    public static LivingEntity localDoll() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return null;
+        Doll d = DOLLS.get(mc.player.getId());
+        return d == null ? null : d.entity;
+    }
+
     public static float time(float partialTick) {
         return clientTicks + partialTick;
     }
@@ -234,6 +242,7 @@ public final class ClientDisguises {
         e.xRotO = e.getXRot();
         e.tickCount = p.tickCount;
         e.setOnGround(p.onGround());
+        e.wasTouchingWater = p.isInWater();     // рыбы и аксолотли «плывут», а не бьются на суше
         e.setSprinting(p.isSprinting());
         e.walkAnimation.update(Math.min(moved * 4.0F, 1.0F), 0.4F);
         if (e instanceof Player copy) {
