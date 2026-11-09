@@ -36,7 +36,10 @@ public class MirageMaskItem extends Item {
         if (DisguiseManager.isDisguised(player)) {
             return InteractionResultHolder.fail(stack);
         }
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0F, 0.6F);
+        if (!level.isClientSide) {   // звук надевания слышат все рядом
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    com.vladosiwe.miragemask.registry.ModSounds.PUT_ON.get(), SoundSource.PLAYERS, 0.8F, 1.0F);
+        }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);
     }

@@ -1,0 +1,10 @@
+{
+  "mask.put_on": {
+    "subtitle": "subtitles.miragemask.put_on",
+    "sounds": ["miragemask:mask/put_on"]
+  },
+  "mask.disguise": {
+    "subtitle": "subtitles.miragemask.disguise",
+    "sounds": ["miragemask:mask/disguise"]
+  }
+}

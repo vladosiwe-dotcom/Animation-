@@ -19,5 +19,7 @@
   "hud.miragemask.adaptive": "adaptive",
   "hud.miragemask.broken": "Mask shattered",
   "hud.miragemask.off": "Mask off",
-  "command.miragemask.bad_mob": "The mask cannot turn you into %s"
+  "command.miragemask.bad_mob": "The mask cannot turn you into %s",
+  "subtitles.miragemask.put_on": "Mask put on",
+  "subtitles.miragemask.disguise": "Disguise shimmers"
 }

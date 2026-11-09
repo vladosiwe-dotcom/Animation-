@@ -112,7 +112,7 @@ public final class HexOverlay {
         }
 
         int w = g.guiWidth(), h = g.guiHeight();
-        float r = h / 9.0F;
+        float r = h / 17.0F;                       // мелкие соты по краям
         float cx0 = w / 2.0F, cy0 = h / 2.0F;
         float maxD = (float) Math.sqrt(cx0 * cx0 + cy0 * cy0);
         float colStep = (float) (Math.sqrt(3) * r), rowStep = 1.5F * r;
@@ -177,7 +177,18 @@ public final class HexOverlay {
     // ---------------------------------------------------------------- HUD-панель «какой облик надет»
     private static final int PANEL_X = 6, PANEL_Y = 6, PANEL_W = 138, PANEL_H = 46;
 
+    private static final float HUD_SCALE = 0.72F;   // компактная панель
+
     private static void renderPanel(GuiGraphics g, Minecraft mc, float pt, boolean warning, float pulse) {
+        g.pose().pushPose();
+        g.pose().translate(PANEL_X, PANEL_Y, 0);
+        g.pose().scale(HUD_SCALE, HUD_SCALE, 1);
+        g.pose().translate(-PANEL_X, -PANEL_Y, 0);
+        renderPanelInner(g, mc, pt, warning, pulse);
+        g.pose().popPose();
+    }
+
+    private static void renderPanelInner(GuiGraphics g, Minecraft mc, float pt, boolean warning, float pulse) {
         float since = ticks - endedAt + pt;
         float fade = active ? 1 : Mth.clamp(1 - (since - 30) / 15, 0, 1);   // после снятия ещё ~2 с
         if (fade <= 0) return;
@@ -234,10 +245,8 @@ public final class HexOverlay {
         e.setXRot(0); e.xRotO = 0;
         float size = Math.max(e.getBbHeight(), e.getBbWidth() * 1.15F);
         float scale = 26.0F / Math.max(0.5F, size);
-        g.enableScissor((int) cx - 18, (int) cy - 18, (int) cx + 18, (int) cy + 18);
         net.minecraft.client.gui.screens.inventory.InventoryScreen.renderEntityInInventory(g, cx, cy + 13, scale,
                 new org.joml.Vector3f(0, 0, 0), new org.joml.Quaternionf().rotateZ((float) Math.PI).rotateX(0.18F), null, e);
-        g.disableScissor();
         e.yBodyRot = body; e.yBodyRotO = bodyO; e.yHeadRot = head; e.yHeadRotO = headO;
         e.setYRot(yRot); e.yRotO = yRotO; e.setXRot(xRot); e.xRotO = xRotO;
     }

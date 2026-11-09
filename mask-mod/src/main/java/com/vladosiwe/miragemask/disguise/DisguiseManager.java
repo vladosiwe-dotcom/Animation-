@@ -78,8 +78,7 @@ public final class DisguiseManager {
         apply(player, s, forced != null ? forced
                 : DisguiseContext.choose(player, DisguiseContext.contextKey(player), player.getRandom()),
                 DisguisePayload.FLASH_ACTIVATE);
-        play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 1.0F, 0.8F);
-        play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 1.2F);
+        play(player, com.vladosiwe.miragemask.registry.ModSounds.DISGUISE.get(), 0.45F, 1.0F);   // маскировка — тихо
         return true;
     }
 
@@ -137,7 +136,7 @@ public final class DisguiseManager {
                 play(player, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0F, 0.6F);
                 sync(player, s, DisguisePayload.FLASH_PAUSE);
             } else {
-                play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.9F, 1.1F);
+                play(player, com.vladosiwe.miragemask.registry.ModSounds.DISGUISE.get(), 0.35F, 1.1F);
                 String key = DisguiseContext.contextKey(player);
                 if (!s.locked && !key.equals(s.disguise.context())) {
                     apply(player, s, DisguiseContext.choose(player, key, player.getRandom()), DisguisePayload.FLASH_RESUME);
@@ -171,7 +170,7 @@ public final class DisguiseManager {
             String key = DisguiseContext.contextKey(player);
             if (!key.equals(s.disguise.context())) {
                 apply(player, s, DisguiseContext.choose(player, key, player.getRandom()), DisguisePayload.FLASH_CHANGE);
-                play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.7F, 1.3F);
+                play(player, com.vladosiwe.miragemask.registry.ModSounds.DISGUISE.get(), 0.3F, 1.2F);
             }
         }
         // голоса моба: замаскированный игрок «мычит», «хрюкает» и т.д.
@@ -329,7 +328,7 @@ public final class DisguiseManager {
         s.paused = false;
         s.endTick = player.serverLevel().getGameTime() + s.total;
         apply(player, s, d, DisguisePayload.FLASH_CHANGE);
-        play(player, SoundEvents.ILLUSIONER_MIRROR_MOVE, 0.7F, 1.3F);
+        play(player, com.vladosiwe.miragemask.registry.ModSounds.DISGUISE.get(), 0.3F, 1.2F);
     }
 
     private static int mirageAs(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx)
@@ -371,7 +370,8 @@ public final class DisguiseManager {
 
     // ------------------------------------------------------------------ эффекты
 
+    /** Звуки маски (кроме надевания) слышит только сам игрок. */
     private static void play(ServerPlayer player, SoundEvent sound, float volume, float pitch) {
-        player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, volume, pitch);
+        player.playNotifySound(sound, SoundSource.PLAYERS, volume, pitch);
     }
 }

@@ -19,5 +19,7 @@
   "hud.miragemask.adaptive": "подстраивается",
   "hud.miragemask.broken": "Маска сорвана",
   "hud.miragemask.off": "Маска снята",
-  "command.miragemask.bad_mob": "В «%s» маска превратить не может"
+  "command.miragemask.bad_mob": "В «%s» маска превратить не может",
+  "subtitles.miragemask.put_on": "Надевается маска",
+  "subtitles.miragemask.disguise": "Маскировка"
 }

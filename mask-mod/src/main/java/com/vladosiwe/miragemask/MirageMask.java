@@ -20,6 +20,7 @@ public class MirageMask {
     public MirageMask(IEventBus modBus) {
         ModItems.ITEMS.register(modBus);
         ModParticles.PARTICLES.register(modBus);
+        com.vladosiwe.miragemask.registry.ModSounds.SOUNDS.register(modBus);
         modBus.addListener(MirageMask::registerPayloads);
         modBus.addListener(MirageMask::creativeTab);
         NeoForge.EVENT_BUS.register(DisguiseManager.class);
