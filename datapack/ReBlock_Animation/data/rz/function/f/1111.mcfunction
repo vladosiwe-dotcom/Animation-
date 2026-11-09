@@ -1,6 +1,6 @@
-particle dust{color:[0.12,0,0.2],scale:1.6} ~4.5882 ~3.487 ~-5.5327 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~1.9517 ~1.0073 ~-7.2626 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-1.158 ~2.3457 ~0.6846 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~4.5882 ~3.487 ~-5.5327 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~1.9517 ~1.0073 ~-7.2626 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-1.158 ~2.3457 ~0.6846 0.3 0.3 0.3 0 3 force @a
 particle squid_ink ~2.626 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~1.8569 ~0.05 ~-1.6431 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~ ~0.05 ~-0.874 0.05 0.02 0.05 0.005 1 force @a

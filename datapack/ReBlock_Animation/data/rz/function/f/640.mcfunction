@@ -40,9 +40,9 @@ data merge entity @e[type=block_display,tag=rz.cult.p62,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.cult.p63,limit=1] {transformation:[-0.042f,0.0105f,0.5196f,3.0871f,0.0132f,0.0646f,-0.0269f,-0.2469f,-0.0492f,0.0083f,-0.4514f,-2.7041f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.p64,limit=1] {transformation:[-0.042f,0.0105f,0.5196f,3.031f,0.0132f,0.0646f,-0.0269f,-0.2293f,-0.0492f,0.0083f,-0.4514f,-2.7697f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.p65,limit=1] {transformation:[-0.042f,0.0105f,0.3712f,2.6179f,0.0132f,0.0646f,-0.0192f,-0.197f,-0.0492f,0.0083f,-0.3224f,-2.4964f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-11.3982 ~9.1842 ~3.9266 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~11.3982 ~9.1842 ~3.9266 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-13.6702 ~3.6109 ~1.8068 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~13.6702 ~3.6109 ~1.8068 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-6.4896 ~-0.3921 ~1.3634 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~6.4896 ~-0.3921 ~1.3634 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-11.3982 ~9.1842 ~3.9266 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~11.3982 ~9.1842 ~3.9266 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-13.6702 ~3.6109 ~1.8068 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~13.6702 ~3.6109 ~1.8068 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-6.4896 ~-0.3921 ~1.3634 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~6.4896 ~-0.3921 ~1.3634 0.15 0.15 0.15 0.01 3 force @a

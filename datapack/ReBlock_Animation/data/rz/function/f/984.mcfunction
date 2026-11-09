@@ -1,6 +1,6 @@
-particle dust{color:[0.75,0.02,0.05],scale:1.3} ~ ~1.25 ~-3.4 0.2 0.25 0.2 0 40 force @a
+particle dust{color:[0.75f,0.02f,0.05f],scale:1.3f} ~ ~1.25 ~-3.4 0.2 0.25 0.2 0 40 force @a
 particle damage_indicator ~ ~1.25 ~-3.4 0.2 0.2 0.2 0.1 6 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~ ~1.25 ~-3.4 0.3 0.3 0.3 0 20 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~ ~1.25 ~-3.4 0.3 0.3 0.3 0 20 force @a
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.player.hurt master @s ~ ~ ~ 1 0.7
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:item.trident.hit master @s ~ ~ ~ 1 0.6
 data merge entity @e[type=block_display,tag=rz.hero.leg_r,limit=1] {transformation:[0.209f,0f,0f,-0.2145f,0f,0.5416f,-0.0382f,0.1375f,0f,0.0955f,0.2167f,-0.2038f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:3}

@@ -1,6 +1,6 @@
-particle dust{color:[0.12,0,0.2],scale:1.6} ~3.8989 ~0.2925 ~-1.5886 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-3.0261 ~3.5881 ~-8.9615 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~3.3934 ~2.641 ~1.456 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~3.8989 ~0.2925 ~-1.5886 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-3.0261 ~3.5881 ~-8.9615 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~3.3934 ~2.641 ~1.456 0.3 0.3 0.3 0 3 force @a
 particle squid_ink ~2.4612 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~1.7403 ~0.05 ~-1.7597 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~ ~0.05 ~-1.0388 0.05 0.02 0.05 0.005 1 force @a
@@ -31,6 +31,6 @@ data merge entity @e[type=block_display,tag=rz.witch.p17,limit=1] {transformatio
 data merge entity @e[type=block_display,tag=rz.witch.p18,limit=1] {transformation:[0.1056f,0f,0f,0.0176f,0f,0.1004f,0.2229f,2.2097f,0f,-0.0326f,0.6857f,3.5654f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:50}
 data merge entity @e[type=block_display,tag=rz.witch.p19,limit=1] {transformation:[0.1056f,0f,0f,0.1584f,0f,0.1004f,0.2229f,2.2097f,0f,-0.0326f,0.6857f,3.5654f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:50}
 data merge entity @e[type=block_display,tag=rz.witch.p20,limit=1] {transformation:[0.1056f,0f,0f,0.264f,0f,0.1004f,0.1592f,2.0505f,0f,-0.0326f,0.4898f,3.0756f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:50}
-particle dust{color:[0.55,0.15,0.95],scale:1} ~-1.9248 ~1.0345 ~-4.7716 0.15 0.15 0.15 0.01 4 force @a
-particle dust{color:[0.55,0.15,0.95],scale:1} ~1.9248 ~1.0345 ~-4.7716 0.15 0.15 0.15 0.01 4 force @a
-particle dust{color:[0.55,0.15,0.95],scale:1} ~ ~2.1836 ~0.4294 0.15 0.15 0.15 0.01 4 force @a
+particle dust{color:[0.55f,0.15f,0.95f],scale:1f} ~-1.9248 ~1.0345 ~-4.7716 0.15 0.15 0.15 0.01 4 force @a
+particle dust{color:[0.55f,0.15f,0.95f],scale:1f} ~1.9248 ~1.0345 ~-4.7716 0.15 0.15 0.15 0.01 4 force @a
+particle dust{color:[0.55f,0.15f,0.95f],scale:1f} ~ ~2.1836 ~0.4294 0.15 0.15 0.15 0.01 4 force @a

@@ -5,4 +5,4 @@ data merge entity @e[type=block_display,tag=rz.cult.p27,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.cult.p28,limit=1] {transformation:[-0.0656f,0.007f,-0.0003f,-0.0868f,0.007f,0.0656f,0.0002f,-0.1103f,0.0012f,0.0006f,-0.0192f,0.181f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
 data merge entity @e[type=block_display,tag=rz.cult.p29,limit=1] {transformation:[-0.0656f,0.007f,-0.0003f,-0.1743f,0.007f,0.0656f,0.0002f,-0.101f,0.0012f,0.0006f,-0.0192f,0.1825f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
 data merge entity @e[type=block_display,tag=rz.cult.p30,limit=1] {transformation:[-0.0656f,0.007f,-0.0002f,-0.2397f,0.007f,0.0656f,0.0002f,-0.0942f,0.0012f,0.0006f,-0.0137f,0.1975f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
-particle dust{color:[0.75,0.02,0.05],scale:1.3} ~ ~0.1 ~-3.3 0.5 0.02 0.5 0 4 force @a
+particle dust{color:[0.75f,0.02f,0.05f],scale:1.3f} ~ ~0.1 ~-3.3 0.5 0.02 0.5 0 4 force @a

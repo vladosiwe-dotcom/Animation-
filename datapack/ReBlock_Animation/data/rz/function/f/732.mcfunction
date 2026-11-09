@@ -20,10 +20,10 @@ particle end_rod ~0.0399 ~1.1906 ~1.8015 0 0 0 0 1 force @a
 particle end_rod ~0.201 ~0.8017 ~1.8015 0 0 0 0 1 force @a
 particle end_rod ~0.5899 ~0.6406 ~1.8015 0 0 0 0 1 force @a
 particle end_rod ~0.9788 ~0.8017 ~1.8015 0 0 0 0 1 force @a
-particle dust_color_transition{from_color:[0.75,0.9,1],to_color:[0.4,0.6,1],scale:1} ~0.7028 ~1.2446 ~5.5444 0.05 0.05 0.05 0.01 2 force @a
+particle dust_color_transition{from_color:[0.75f,0.9f,1f],to_color:[0.4f,0.6f,1f],scale:1f} ~0.7028 ~1.2446 ~5.5444 0.05 0.05 0.05 0.01 2 force @a
 kill @e[type=block_display,tag=rz.fx3]
 particle block{block_state:{Name:"minecraft:packed_ice"}} ~0.7028 ~1.2446 ~5.5444 0.3 0.3 0.3 0.1 30 force @a
 particle snowflake ~0.7028 ~1.2446 ~5.5444 0.2 0.2 0.2 0.15 15 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~0.7028 ~1.2446 ~5.5444 0.3 0.3 0.3 0 10 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~0.7028 ~1.2446 ~5.5444 0.3 0.3 0.3 0 10 force @a
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:block.glass.break master @s ~ ~ ~ 1 0.96
-particle dust_color_transition{from_color:[0.75,0.9,1],to_color:[0.4,0.6,1],scale:1} ~-0.0761 ~1.0889 ~2.7372 0.05 0.05 0.05 0.01 2 force @a
+particle dust_color_transition{from_color:[0.75f,0.9f,1f],to_color:[0.4f,0.6f,1f],scale:1f} ~-0.0761 ~1.0889 ~2.7372 0.05 0.05 0.05 0.01 2 force @a

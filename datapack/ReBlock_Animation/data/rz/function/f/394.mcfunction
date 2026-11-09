@@ -8,4 +8,4 @@ particle squid_ink ~-1.3915 ~0.1 ~5.989 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~-0.5315 ~0.1 ~5.3642 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~0.5315 ~0.1 ~5.3642 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~1.3915 ~0.1 ~5.989 0.05 0.05 0.05 0.01 1 force @a
-particle dust_color_transition{from_color:[0.25,0,0.35],to_color:[0.02,0,0.03],scale:2.2} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a
+particle dust_color_transition{from_color:[0.25f,0f,0.35f],to_color:[0.02f,0f,0.03f],scale:2.2f} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a

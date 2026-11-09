@@ -8,7 +8,7 @@ particle squid_ink ~-1.7798 ~0.1 ~5.7069 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~-0.6798 ~0.1 ~4.9077 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~0.6798 ~0.1 ~4.9077 0.05 0.05 0.05 0.01 1 force @a
 particle squid_ink ~1.7798 ~0.1 ~5.7069 0.05 0.05 0.05 0.01 1 force @a
-particle dust_color_transition{from_color:[0.25,0,0.35],to_color:[0.02,0,0.03],scale:2.2} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a
+particle dust_color_transition{from_color:[0.25f,0f,0.35f],to_color:[0.02f,0f,0.03f],scale:2.2f} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a
 data merge entity @e[type=block_display,tag=rz.cult.torso,limit=1] {transformation:[-0.4376f,0.069f,0f,0.2188f,0.0426f,0.6086f,0.0824f,0.5975f,0.0172f,0.2459f,-0.204f,0.0934f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.arm_r,limit=1] {transformation:[-0.0477f,-0.531f,0.0098f,0.8315f,0.1794f,-0.1354f,0.0256f,1.1758f,-0.0223f,0.0468f,0.185f,0.0822f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.hand_r,limit=1] {transformation:[-0.0435f,-0.1062f,0.0089f,0.9361f,0.1636f,-0.0271f,0.0233f,1.2119f,-0.0203f,0.0094f,0.1687f,0.08f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}

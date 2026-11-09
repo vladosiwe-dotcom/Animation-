@@ -1,4 +1,4 @@
-particle dust_color_transition{from_color:[0.75,0.9,1],to_color:[0.4,0.6,1],scale:1} ~0.0333 ~1.3874 ~4.1408 0.05 0.05 0.05 0.01 2 force @a
+particle dust_color_transition{from_color:[0.75f,0.9f,1f],to_color:[0.4f,0.6f,1f],scale:1f} ~0.0333 ~1.3874 ~4.1408 0.05 0.05 0.05 0.01 2 force @a
 data merge entity @e[type=block_display,tag=rz.cult.p59,limit=1] {transformation:[-0.1315f,-0.0008f,0.1135f,0.0777f,0.0031f,0.1248f,0.4088f,-0.0343f,-0.0115f,0.0429f,-1.1867f,-0.1849f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:3}
 data merge entity @e[type=block_display,tag=rz.cult.p60,limit=1] {transformation:[-0.3287f,-0.0007f,0.0189f,0.2897f,0.0077f,0.104f,0.0681f,0.3826f,-0.0288f,0.0358f,-0.1978f,-1.3594f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:3}
 data merge entity @e[type=block_display,tag=rz.cult.p61,limit=1] {transformation:[-0.0657f,-0.0004f,0.0221f,0.3085f,0.0015f,0.0624f,0.0795f,0.4716f,-0.0058f,0.0215f,-0.2307f,-1.55f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:3}

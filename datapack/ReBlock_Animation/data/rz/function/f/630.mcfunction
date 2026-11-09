@@ -40,10 +40,10 @@ data merge entity @e[type=block_display,tag=rz.cult.p62,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.cult.p63,limit=1] {transformation:[-0.0492f,0.0129f,0.4482f,2.6189f,0.0114f,0.0647f,-0.0697f,-0.5149f,-0.0425f,0.0024f,-0.5371f,-3.1812f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.p64,limit=1] {transformation:[-0.0492f,0.0129f,0.4482f,2.5534f,0.0114f,0.0647f,-0.0697f,-0.4997f,-0.0425f,0.0024f,-0.5371f,-3.2379f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
 data merge entity @e[type=block_display,tag=rz.cult.p65,limit=1] {transformation:[-0.0492f,0.0129f,0.3202f,2.184f,0.0114f,0.0647f,-0.0498f,-0.4385f,-0.0425f,0.0024f,-0.3836f,-2.8968f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:10}
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-10.0256 ~10.983 ~1.2502 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~7.9672 ~6.6871 ~3.2712 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-12.9371 ~5.4805 ~-0.8973 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~13.1326 ~1.8204 ~4.3878 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-7.2073 ~0.1528 ~3.2623 0.15 0.15 0.15 0.01 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~5.6733 ~-0.9573 ~0.1846 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-10.0256 ~10.983 ~1.2502 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~7.9672 ~6.6871 ~3.2712 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-12.9371 ~5.4805 ~-0.8973 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~13.1326 ~1.8204 ~4.3878 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-7.2073 ~0.1528 ~3.2623 0.15 0.15 0.15 0.01 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~5.6733 ~-0.9573 ~0.1846 0.15 0.15 0.15 0.01 3 force @a
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.vex.charge master @s ~ ~ ~ 0.7 0.6

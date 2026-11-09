@@ -6,4 +6,4 @@ data merge entity @e[type=block_display,tag=rz.heart.p4,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.heart.p5,limit=1] {transformation:[-0.0474f,0f,0.1792f,-0.0659f,0f,0.091f,0f,0.091f,-0.2689f,0f,-0.0316f,0.1502f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:2}
 data merge entity @e[type=block_display,tag=rz.heart.p6,limit=1] {transformation:[-0.0158f,0f,0.1792f,-0.0817f,0f,0.091f,0f,0f,-0.0896f,0f,-0.0316f,0.0606f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:2}
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.warden.heartbeat master @s ~ ~ ~ 1.2 0.9
-particle dust{color:[0.75,0.02,0.05],scale:1.3} ~ ~1.25 ~-2.3 0.15 0.15 0.15 0 6 force @a
+particle dust{color:[0.75f,0.02f,0.05f],scale:1.3f} ~ ~1.25 ~-2.3 0.15 0.15 0.15 0 6 force @a

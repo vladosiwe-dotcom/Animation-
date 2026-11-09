@@ -42,4 +42,4 @@ data merge entity @e[type=block_display,tag=rz.cult.p64,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.cult.p65,limit=1] {transformation:[-0.042f,0.0105f,0.3712f,2.6179f,0.0132f,0.0646f,-0.0192f,-0.197f,-0.0492f,0.0083f,-0.3224f,-2.4964f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:8}
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.warden.sonic_boom master @s ~ ~ ~ 0.4 0.5
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.illusioner.mirror_move master @s ~ ~ ~ 1 0.6
-particle dust{color:[0.12,0,0.2],scale:1.6} ~ ~1.4 ~7 1.5 1 1.5 0 10 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~ ~1.4 ~7 1.5 1 1.5 0 10 force @a

@@ -1,6 +1,6 @@
-particle dust{color:[0.12,0,0.2],scale:1.6} ~2.4176 ~2.9008 ~1.0555 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-4.3518 ~2.0734 ~-5.1125 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-5.8699 ~0.4244 ~-5.6317 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~2.4176 ~2.9008 ~1.0555 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-4.3518 ~2.0734 ~-5.1125 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-5.8699 ~0.4244 ~-5.6317 0.3 0.3 0.3 0 3 force @a
 particle squid_ink ~2.1565 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~1.5249 ~0.05 ~-1.9751 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~ ~0.05 ~-1.3435 0.05 0.02 0.05 0.005 1 force @a
@@ -18,7 +18,7 @@ data merge entity @e[type=block_display,tag=rz.heart.p4,limit=1] {transformation
 data merge entity @e[type=block_display,tag=rz.heart.p5,limit=1] {transformation:[0.273f,0f,0f,-0.1365f,0f,0.091f,0f,0.091f,0f,0f,0.182f,-0.091f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:2}
 data merge entity @e[type=block_display,tag=rz.heart.p6,limit=1] {transformation:[0.091f,0f,0f,-0.0455f,0f,0.091f,0f,0f,0f,0f,0.182f,-0.091f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:2}
 execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.warden.heartbeat master @s ~ ~ ~ 1.2 0.9
-particle dust{color:[0.75,0.02,0.05],scale:1.3} ~ ~1.25 ~-2.3 0.15 0.15 0.15 0 6 force @a
+particle dust{color:[0.75f,0.02f,0.05f],scale:1.3f} ~ ~1.25 ~-2.3 0.15 0.15 0.15 0 6 force @a
 data merge entity @e[type=block_display,tag=rz.witch.p0,limit=1] {transformation:[0.264f,0f,0f,-0.132f,0f,0.264f,0f,-0.132f,0f,0f,0.0792f,-1.5092f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:0}
 data merge entity @e[type=block_display,tag=rz.witch.p1,limit=1] {transformation:[0.66f,0f,0f,-0.33f,0f,0.22f,0f,-0.11f,0f,0f,0.0132f,-1.43f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:0}
 data merge entity @e[type=block_display,tag=rz.witch.p2,limit=1] {transformation:[0.132f,0f,0f,-0.33f,0f,0.132f,0f,-0.066f,0f,0f,0.0154f,-1.4168f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:0}

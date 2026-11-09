@@ -1,13 +1,6 @@
 {
   "pack": {
     "description": "§5Re:Блок§7 — анимация «Возвращение смертью»",
-    "min_format": [
-      94,
-      1
-    ],
-    "max_format": [
-      94,
-      1
-    ]
+    "pack_format": 48
   }
 }

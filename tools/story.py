@@ -23,13 +23,17 @@ ROOT = os.path.normpath(os.path.join(HERE, ".."))
 PACK_NAME = "ReBlock_Animation"
 
 # цвета частиц
+def fl(*cs):
+    # 1.21.1: в NBT-списке все числа одного типа, поэтому везде float с суффиксом f
+    return ",".join(fnum(c) + "f" for c in cs)
+
+
 def dust(r, g, b, s=1.0):
-    return f"dust{{color:[{fnum(r)},{fnum(g)},{fnum(b)}],scale:{fnum(s)}}}"
+    return f"dust{{color:[{fl(r, g, b)}],scale:{fnum(s)}f}}"
 
 
 def dust_tr(a, b, s=1.0):
-    return (f"dust_color_transition{{from_color:[{','.join(fnum(c) for c in a)}],"
-            f"to_color:[{','.join(fnum(c) for c in b)}],scale:{fnum(s)}}}")
+    return f"dust_color_transition{{from_color:[{fl(*a)}],to_color:[{fl(*b)}],scale:{fnum(s)}f}}"
 
 
 MIASMA = dust_tr((0.25, 0.0, 0.35), (0.02, 0.0, 0.03), 2.2)
@@ -443,7 +447,7 @@ def build_scene():
 STATIC = {
     "load": """scoreboard objectives add rz.t dummy
 scoreboard players add #play rz.t 0
-tellraw @a ["",{"text":"[Re:Блок] ","color":"dark_purple","bold":true},{"text":"Анимация загружена. ","color":"gray"},{"text":"/function rz:start","color":"light_purple","click_event":{"action":"suggest_command","command":"/function rz:start"}},{"text":" — кино с камерой, ","color":"gray"},{"text":"/function rz:play","color":"light_purple","click_event":{"action":"suggest_command","command":"/function rz:play"}},{"text":" — свободный обзор.","color":"gray"}]
+tellraw @a ["",{"text":"[Re:Блок] ","color":"dark_purple","bold":true},{"text":"Анимация загружена. ","color":"gray"},{"text":"/function rz:start","color":"light_purple","clickEvent":{"action":"suggest_command","value":"/function rz:start"}},{"text":" — кино с камерой, ","color":"gray"},{"text":"/function rz:play","color":"light_purple","clickEvent":{"action":"suggest_command","value":"/function rz:play"}},{"text":" — свободный обзор.","color":"gray"}]
 """,
     "tick": """execute if score #play rz.t matches 1 as @e[type=marker,tag=rz.stage,limit=1] at @s run function rz:run
 """,
@@ -552,7 +556,7 @@ def write_pack(sc):
 
     with open(os.path.join(out, "pack.mcmeta"), "w", encoding="utf-8") as f:
         json.dump({"pack": {"description": "§5Re:Блок§7 — анимация «Возвращение смертью»",
-                            "min_format": [94, 1], "max_format": [94, 1]}}, f, ensure_ascii=False, indent=2)
+                            "pack_format": 48}}, f, ensure_ascii=False, indent=2)
     tags = os.path.join(out, "data", "minecraft", "tags", "function")
     os.makedirs(tags, exist_ok=True)
     for n in ("load", "tick"):

@@ -131,9 +131,9 @@ data merge entity @e[type=block_display,tag=rz.hero.p33,limit=1] {transformation
 tp @e[type=item_display,tag=rz.cam,limit=1] ~2.6 ~1.9 ~-0.2 facing ~ ~1.35 ~-2.9
 data merge entity @e[type=item_display,tag=rz.cam,limit=1] {teleport_duration:50}
 time set 18000
-particle dust{color:[0.12,0,0.2],scale:1.6} ~-4.1642 ~3.8309 ~1.6136 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~2.4005 ~0.9278 ~-0.1555 0.3 0.3 0.3 0 3 force @a
-particle dust{color:[0.12,0,0.2],scale:1.6} ~0.5432 ~2.3565 ~1.6689 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~-4.1642 ~3.8309 ~1.6136 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~2.4005 ~0.9278 ~-0.1555 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12f,0f,0.2f],scale:1.6f} ~0.5432 ~2.3565 ~1.6689 0.3 0.3 0.3 0 3 force @a
 particle squid_ink ~2.2754 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~1.609 ~0.05 ~-1.891 0.05 0.02 0.05 0.005 1 force @a
 particle squid_ink ~ ~0.05 ~-1.2246 0.05 0.02 0.05 0.005 1 force @a
