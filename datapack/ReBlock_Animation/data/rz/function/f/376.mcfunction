@@ -1,0 +1,11 @@
+particle squid_ink ~1.18 ~0.1 ~7 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.9546 ~0.1 ~7.6936 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.3646 ~0.1 ~8.1222 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.3646 ~0.1 ~8.1222 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.9546 ~0.1 ~7.6936 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-1.18 ~0.1 ~7 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.9546 ~0.1 ~6.3064 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.3646 ~0.1 ~5.8778 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.3646 ~0.1 ~5.8778 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.9546 ~0.1 ~6.3064 0.05 0.05 0.05 0.01 1 force @a
+particle dust_color_transition{from_color:[0.25,0,0.35],to_color:[0.02,0,0.03],scale:2.2} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a

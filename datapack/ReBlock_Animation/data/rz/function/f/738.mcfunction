@@ -1,0 +1,29 @@
+particle snowflake ~1.4899 ~1.1906 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~1.4008 ~1.5811 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~1.151 ~1.8943 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.7902 ~2.0681 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.3896 ~2.0681 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.0287 ~1.8943 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~-0.221 ~1.5811 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~-0.3101 ~1.1906 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~-0.221 ~0.8001 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.0287 ~0.487 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.3896 ~0.3132 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~0.7902 ~0.3132 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~1.151 ~0.487 ~1.8015 0 0 0 0 1 force @a
+particle snowflake ~1.4008 ~0.8001 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~1.1399 ~1.1906 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.9788 ~1.5796 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.5899 ~1.7406 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.201 ~1.5796 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.0399 ~1.1906 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.201 ~0.8017 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.5899 ~0.6406 ~1.8015 0 0 0 0 1 force @a
+particle end_rod ~0.9788 ~0.8017 ~1.8015 0 0 0 0 1 force @a
+particle dust_color_transition{from_color:[0.75,0.9,1],to_color:[0.4,0.6,1],scale:1} ~-0.3552 ~0.8987 ~5.5444 0.05 0.05 0.05 0.01 2 force @a
+kill @e[type=block_display,tag=rz.fx4]
+particle block{block_state:{Name:"minecraft:packed_ice"}} ~-0.3552 ~0.8987 ~5.5444 0.3 0.3 0.3 0.1 30 force @a
+particle snowflake ~-0.3552 ~0.8987 ~5.5444 0.2 0.2 0.2 0.15 15 force @a
+particle dust{color:[0.12,0,0.2],scale:1.6} ~-0.3552 ~0.8987 ~5.5444 0.3 0.3 0.3 0 10 force @a
+execute as @a[tag=rz.viewer] at @s run playsound minecraft:block.glass.break master @s ~ ~ ~ 1 1.04
+particle dust_color_transition{from_color:[0.75,0.9,1],to_color:[0.4,0.6,1],scale:1} ~0.2651 ~1.0223 ~2.7372 0.05 0.05 0.05 0.01 2 force @a

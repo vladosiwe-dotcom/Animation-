@@ -1,0 +1,4 @@
+data merge entity @e[type=block_display,tag=rz.hero.arm_r,limit=1] {transformation:[0.1189f,0.1702f,-0.1024f,-0.38f,0.0997f,-0.3959f,0.0564f,1.496f,-0.0563f,-0.3417f,-0.1164f,0.5766f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.hero.hand_r,limit=1] {transformation:[0.107f,0.034f,-0.0922f,-0.4132f,0.0897f,-0.0792f,0.0508f,1.583f,-0.0506f,-0.0683f,-0.1048f,0.6364f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.hero.p13,limit=1] {transformation:[0.004f,0.1702f,-0.0273f,-0.4195f,0.0033f,-0.3959f,0.015f,1.515f,-0.0019f,-0.3417f,-0.031f,0.5349f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.hero.p14,limit=1] {transformation:[0.1228f,0.017f,-0.1058f,-0.3802f,0.103f,-0.0396f,0.0583f,1.4934f,-0.0581f,-0.0342f,-0.1203f,0.5795f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}

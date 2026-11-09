@@ -1,0 +1,19 @@
+particle dust{color:[0.12,0,0.2],scale:1.6} ~1.7052 ~1.1192 ~-0.432 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12,0,0.2],scale:1.6} ~-4.0738 ~0.4948 ~1.9998 0.3 0.3 0.3 0 3 force @a
+particle dust{color:[0.12,0,0.2],scale:1.6} ~4.1199 ~1.4265 ~-4.4407 0.3 0.3 0.3 0 3 force @a
+particle squid_ink ~2.1193 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~1.4985 ~0.05 ~-2.0015 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~ ~0.05 ~-1.3807 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~-1.4985 ~0.05 ~-2.0015 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~-2.1193 ~0.05 ~-3.5 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~-1.4985 ~0.05 ~-4.9985 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~ ~0.05 ~-5.6193 0.05 0.02 0.05 0.005 1 force @a
+particle squid_ink ~1.4985 ~0.05 ~-4.9985 0.05 0.02 0.05 0.005 1 force @a
+particle reverse_portal ~ ~1 ~-3.5 2 1 2 0.02 4 force @a
+particle reverse_portal ~2.2649 ~1.16 ~-3.2382 0 0 0 0 3 force @a
+particle enchant ~2.2649 ~2.28 ~-3.7618 0 0 0 0 2 force @a
+particle reverse_portal ~-1.3585 ~1.16 ~-1.6689 0 0 0 0 3 force @a
+particle enchant ~-1.3585 ~2.28 ~-5.3311 0 0 0 0 2 force @a
+particle reverse_portal ~-0.9073 ~1.16 ~-5.5917 0 0 0 0 3 force @a
+particle enchant ~-0.9073 ~2.28 ~-1.4083 0 0 0 0 2 force @a
+execute as @a[tag=rz.viewer] at @s run playsound minecraft:block.note_block.hat master @s ~ ~ ~ 1 1.64

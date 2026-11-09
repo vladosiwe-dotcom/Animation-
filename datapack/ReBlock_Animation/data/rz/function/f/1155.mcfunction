@@ -1,0 +1,7 @@
+data merge entity @e[type=block_display,tag=rz.heart.p0,limit=1] {transformation:[0.09f,0f,0.1072f,-0.1661f,0f,0.07f,0f,0.35f,-0.1072f,0f,0.09f,0.0891f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p1,limit=1] {transformation:[0.09f,0f,0.1072f,-0.0311f,0f,0.07f,0f,0.35f,-0.1072f,0f,0.09f,-0.0718f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p2,limit=1] {transformation:[0.315f,0f,0.1072f,-0.2111f,0f,0.07f,0f,0.28f,-0.3754f,0f,0.09f,0.1427f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p3,limit=1] {transformation:[0.315f,0f,0.1072f,-0.2111f,0f,0.07f,0f,0.21f,-0.3754f,0f,0.09f,0.1427f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p4,limit=1] {transformation:[0.225f,0f,0.1072f,-0.1661f,0f,0.07f,0f,0.14f,-0.2681f,0f,0.09f,0.0891f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p5,limit=1] {transformation:[0.135f,0f,0.1072f,-0.1211f,0f,0.07f,0f,0.07f,-0.1609f,0f,0.09f,0.0354f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}
+data merge entity @e[type=block_display,tag=rz.heart.p6,limit=1] {transformation:[0.045f,0f,0.1072f,-0.0761f,0f,0.07f,0f,0f,-0.0536f,0f,0.09f,-0.0182f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:5}

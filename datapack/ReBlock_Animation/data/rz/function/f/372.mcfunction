@@ -1,0 +1,13 @@
+particle squid_ink ~1.06 ~0.1 ~7 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.8576 ~0.1 ~7.6231 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.3276 ~0.1 ~8.0081 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.3276 ~0.1 ~8.0081 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.8576 ~0.1 ~7.6231 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-1.06 ~0.1 ~7 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.8576 ~0.1 ~6.3769 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~-0.3276 ~0.1 ~5.9919 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.3276 ~0.1 ~5.9919 0.05 0.05 0.05 0.01 1 force @a
+particle squid_ink ~0.8576 ~0.1 ~6.3769 0.05 0.05 0.05 0.01 1 force @a
+particle dust_color_transition{from_color:[0.25,0,0.35],to_color:[0.02,0,0.03],scale:2.2} ~ ~0.6 ~7 1.2 0.6 1.2 0 6 force @a
+particle large_smoke ~ ~0.3 ~7 1 0.2 1 0.02 4 force @a
+particle block{block_state:{Name:"minecraft:stone_bricks"}} ~ ~0.1 ~7 1 0.1 1 0 6 force @a

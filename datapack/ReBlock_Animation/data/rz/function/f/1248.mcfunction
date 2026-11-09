@@ -1,0 +1,8 @@
+data merge entity @e[type=block_display,tag=rz.heart.p0,limit=1] {transformation:[0.0043f,0f,-0.0488f,0.0191f,0f,0.0245f,0f,0.1225f,0.0488f,0f,0.0043f,-0.0632f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p1,limit=1] {transformation:[0.0043f,0f,-0.0488f,0.0255f,0f,0.0245f,0f,0.1225f,0.0488f,0f,0.0043f,0.0101f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p2,limit=1] {transformation:[0.0149f,0f,-0.0488f,0.0169f,0f,0.0245f,0f,0.098f,0.1708f,0f,0.0043f,-0.0876f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p3,limit=1] {transformation:[0.0149f,0f,-0.0488f,0.0169f,0f,0.0245f,0f,0.0735f,0.1708f,0f,0.0043f,-0.0876f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p4,limit=1] {transformation:[0.0107f,0f,-0.0488f,0.0191f,0f,0.0245f,0f,0.049f,0.122f,0f,0.0043f,-0.0632f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p5,limit=1] {transformation:[0.0064f,0f,-0.0488f,0.0212f,0f,0.0245f,0f,0.0245f,0.0732f,0f,0.0043f,-0.0387f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+data merge entity @e[type=block_display,tag=rz.heart.p6,limit=1] {transformation:[0.0021f,0f,-0.0488f,0.0233f,0f,0.0245f,0f,0f,0.0244f,0f,0.0043f,-0.0143f,0f,0f,0f,1f],start_interpolation:0,interpolation_duration:6}
+execute as @a[tag=rz.viewer] at @s run playsound minecraft:entity.warden.heartbeat master @s ~ ~ ~ 1.5 0.5
