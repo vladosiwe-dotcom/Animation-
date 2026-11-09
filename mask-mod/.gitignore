@@ -3,3 +3,5 @@ build/
 run/
 *.iml
 .idea/
+*.blend1
+docs/blender/frames/
