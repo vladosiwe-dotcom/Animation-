@@ -10,218 +10,173 @@ import com.vladosiwe.miragemask.MirageMask;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import org.joml.Matrix4f;
 
 /**
- * Маска по референсу: овальная стеклянная пластина из крупных шестиугольников,
- * светящиеся рёбра и обод, тёмные крепления со светящимися полосками.
- * Геометрия — из assets/miragemask/models/mask_mesh.json (её же использует сцена Blender).
- * Координаты — пиксели головы (y вниз, лицо на z = -4, «вперёд» = -z).
+ * Маска как воксельная модель Blockbench: assets/miragemask/geo/mirage_mask.json (формат Java Block/Item)
+ * + пиксель-арт текстура и отдельная текстура свечения. Модель строит tools/mask_blockbench.py.
+ * Координаты модели — как в Blockbench (y вверх, голова = куб 4..12); при рендере переводятся
+ * в координаты головы ModelPart: (x - 8, -y, z - 8).
  */
 public final class MaskModel {
     public enum Mode { FULL, STICK, SHATTER }
 
-    private record Shaded(float[] pts, float shade) {}
+    public static final ResourceLocation TEXTURE = MirageMask.id("textures/entity/mirage_mask.png");
+    public static final ResourceLocation GLOW = MirageMask.id("textures/entity/mirage_mask_glow.png");
 
-    private record Cell(float[] center, float[] normal, float dist, float hash, List<Shaded> glass,
-                        List<float[]> edges, List<float[]> glow) {}
+    /** Грань: 4 угла (x,y,z) в координатах модели, uv углов (0..1), нормаль. */
+    private record Face(float[] pos, float[] uv, float nx, float ny, float nz) {}
 
-    private static List<Cell> cells;
-    private static List<float[]> rim, rimGlow, bars;
-    private static List<Shaded> clips;
-    private static float[] center;
+    private record Cube(boolean clip, float cx, float cy, float cz, float dist, float hash, List<Face> faces) {}
+
+    private static List<Cube> cubes;
+    private static float[] center = {0, -4, -5.1F};
 
     private MaskModel() {}
 
     private static boolean load() {
-        if (cells != null) return true;
+        if (cubes != null) return !cubes.isEmpty();
+        List<Cube> out = new ArrayList<>();
         try (Reader r = Minecraft.getInstance().getResourceManager()
-                .getResourceOrThrow(MirageMask.id("models/mask_mesh.json")).openAsReader()) {
+                .getResourceOrThrow(MirageMask.id("geo/mirage_mask.json")).openAsReader()) {
             JsonObject o = JsonParser.parseReader(r).getAsJsonObject();
-            List<Cell> cs = new ArrayList<>();
+            JsonArray c = o.getAsJsonObject("mirage_mask").getAsJsonArray("center");
+            center = new float[] {c.get(0).getAsFloat() - 8, -c.get(1).getAsFloat(), c.get(2).getAsFloat() - 8};
             int i = 0;
-            for (JsonElement e : o.getAsJsonArray("cells")) {
-                JsonObject c = e.getAsJsonObject();
-                List<Shaded> glass = new ArrayList<>();
-                for (JsonElement g : c.getAsJsonArray("glass")) {
-                    glass.add(new Shaded(pts(g.getAsJsonObject().getAsJsonArray("tri")), g.getAsJsonObject().get("shade").getAsFloat()));
+            for (JsonElement e : o.getAsJsonArray("elements")) {
+                JsonObject el = e.getAsJsonObject();
+                float[] f = vec(el.getAsJsonArray("from")), t = vec(el.getAsJsonArray("to"));
+                List<Face> faces = new ArrayList<>();
+                for (Map.Entry<String, JsonElement> fe : el.getAsJsonObject("faces").entrySet()) {
+                    JsonArray uv = fe.getValue().getAsJsonObject().getAsJsonArray("uv");
+                    // UV в модели Minecraft — в единицах 0..16 на всю текстуру
+                    faces.add(face(fe.getKey(), f, t, uv.get(0).getAsFloat() / 16F, uv.get(1).getAsFloat() / 16F,
+                            uv.get(2).getAsFloat() / 16F, uv.get(3).getAsFloat() / 16F));
                 }
-                cs.add(new Cell(vec(c.getAsJsonArray("center")), vec(c.getAsJsonArray("normal")), c.get("dist").getAsFloat(),
-                        Mth.frac(Mth.sin(i++ * 12.9898F) * 43758.547F), glass, polys(c.getAsJsonArray("edges")),
-                        polys(c.getAsJsonArray("glow"))));
+                float cx = (f[0] + t[0]) / 2, cy = (f[1] + t[1]) / 2, cz = (f[2] + t[2]) / 2;
+                float dist = (float) Math.sqrt((cx - 8) * (cx - 8) + (cy - 4) * (cy - 4)) / 5.5F;
+                out.add(new Cube(el.get("name").getAsString().startsWith("clip"), cx, cy, cz, dist,
+                        Mth.frac(Mth.sin(i++ * 12.9898F) * 43758.547F), faces));
             }
-            List<Shaded> cl = new ArrayList<>();
-            for (JsonElement box : o.getAsJsonArray("clips")) {
-                for (JsonElement f : box.getAsJsonArray()) {
-                    cl.add(new Shaded(pts(f.getAsJsonObject().getAsJsonArray("quad")), f.getAsJsonObject().get("shade").getAsFloat()));
-                }
-            }
-            rim = polys(o.getAsJsonArray("rim"));
-            rimGlow = polys(o.getAsJsonArray("rim_glow"));
-            bars = polys(o.getAsJsonArray("bars"));
-            clips = cl;
-            center = vec(o.getAsJsonArray("center"));
-            cells = cs;
-            return true;
         } catch (Exception ex) {
-            MirageMask.LOGGER.error("Mirage Mask: cannot load mask_mesh.json", ex);
-            cells = List.of();
-            return false;
+            MirageMask.LOGGER.error("Mirage Mask: cannot load geo/mirage_mask.json", ex);
         }
+        cubes = out;
+        return !cubes.isEmpty();
     }
 
     private static float[] vec(JsonArray a) {
         return new float[] {a.get(0).getAsFloat(), a.get(1).getAsFloat(), a.get(2).getAsFloat()};
     }
 
-    private static float[] pts(JsonArray a) {
-        float[] out = new float[a.size() * 3];
-        for (int i = 0; i < a.size(); i++) {
-            JsonArray p = a.get(i).getAsJsonArray();
-            out[i * 3] = p.get(0).getAsFloat();
-            out[i * 3 + 1] = p.get(1).getAsFloat();
-            out[i * 3 + 2] = p.get(2).getAsFloat();
+    /**
+     * Углы грани в порядке: верх-лево, низ-лево, низ-право, верх-право (как смотрит зритель на грань),
+     * по правилам UV моделей Minecraft. u0..u1, v0..v1 — доли текстуры (0..1).
+     */
+    private static Face face(String dir, float[] f, float[] t, float u0, float v0, float u1, float v1) {
+        float x0 = f[0], y0 = f[1], z0 = f[2], x1 = t[0], y1 = t[1], z1 = t[2];
+        float[] p;
+        float nx = 0, ny = 0, nz = 0;
+        switch (dir) {
+            case "north" -> { p = new float[] {x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0}; nz = -1; }
+            case "south" -> { p = new float[] {x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1}; nz = 1; }
+            case "east" -> { p = new float[] {x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0}; nx = 1; }
+            case "west" -> { p = new float[] {x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1}; nx = -1; }
+            case "up" -> { p = new float[] {x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0}; ny = 1; }
+            default -> { p = new float[] {x0, y0, z1, x0, y0, z0, x1, y0, z0, x1, y0, z1}; ny = -1; }
         }
-        return out;
+        float[] uv = {u0, v0, u0, v1, u1, v1, u1, v0};
+        return new Face(p, uv, nx, ny, nz);
     }
 
-    private static List<float[]> polys(JsonArray a) {
-        List<float[]> out = new ArrayList<>();
-        for (JsonElement e : a) out.add(pts(e.getAsJsonArray()));
-        return out;
-    }
-
-    /** Центр маски (px) — для предметного рендера и анимаций. */
+    /** Центр маски в координатах головы (px). */
     public static float[] center() {
         load();
-        return center == null ? new float[] {0, -3.35F, -5.2F} : center;
+        return center;
     }
 
     /**
+     * Рисует маску в координатах головы ModelPart (единицы = пиксели / 16 после внутреннего масштаба).
      * @param progress STICK/SHATTER: 0..1
-     * @param time     тики + partialTick (мерцание рёбер)
      */
     public static void render(PoseStack pose, MultiBufferSource buffers, Mode mode, float progress, float time, float alpha) {
-        if (!load() || cells.isEmpty()) return;
+        if (!load()) return;
         pose.pushPose();
         pose.scale(1 / 16F, 1 / 16F, 1 / 16F);
-        Matrix4f m = pose.last().pose();
+        pose.scale(1, -1, 1);           // Blockbench: y вверх -> голова: y вниз
+        pose.translate(-8, 0, -8);
+        PoseStack.Pose last = pose.last();
 
-        // ---- состояние сот
-        int n = cells.size();
-        float[] k = new float[n], off = new float[n], a = new float[n];
+        int n = cubes.size();
+        float[] k = new float[n], off = new float[n], a = new float[n], side = new float[n];
         for (int i = 0; i < n; i++) {
-            Cell c = cells.get(i);
+            Cube c = cubes.get(i);
+            k[i] = 1; off[i] = 0; a[i] = alpha;
             switch (mode) {
                 case STICK -> {
-                    float q = Mth.clamp((progress * 1.7F - c.dist * 0.8F) / 0.45F, 0, 1);
-                    k[i] = backOut(q);                 // сота «шлёпается» на лицо с отскоком
-                    off[i] = (1 - q) * 3.2F;
-                    a[i] = q;
+                    if (c.clip()) {
+                        float q = Mth.clamp((progress - 0.5F) / 0.4F, 0, 1);
+                        side[i] = (1 - q) * 3F;   // крепления «защёлкиваются» с боков в конце
+                        a[i] *= q;
+                    } else {
+                        float q = Mth.clamp((progress * 1.7F - c.dist() * 0.8F) / 0.45F, 0, 1);
+                        k[i] = backOut(q);       // кусочки маски «шлёпаются» на лицо с отскоком
+                        off[i] = (1 - q) * 3.5F;
+                        a[i] *= q;
+                    }
                 }
                 case SHATTER -> {
                     k[i] = 1 - progress * 0.6F;
-                    off[i] = progress * (4 + c.hash * 7);
-                    a[i] = 1 - progress;
+                    off[i] = progress * (4 + c.hash() * 7);
+                    side[i] = c.clip() ? progress * 3 : 0;
+                    a[i] *= 1 - progress;
                 }
-                default -> { k[i] = 1; off[i] = 0; a[i] = 1; }
-            }
-            a[i] *= alpha;
-        }
-        float frameA = alpha * switch (mode) {
-            case STICK -> Mth.clamp((progress - 0.45F) / 0.4F, 0, 1);
-            case SHATTER -> 1 - progress;
-            default -> 1;
-        };
-        float clipSlide = mode == Mode.STICK ? (1 - Mth.clamp((progress - 0.5F) / 0.4F, 0, 1)) * 2.5F
-                : mode == Mode.SHATTER ? -progress * 5 : 0;
-
-        // ---- 1. тёмные крепления (непрозрачные)
-        if (frameA > 0.05F) {
-            VertexConsumer solid = buffers.getBuffer(MaskRenderTypes.SOLID);
-            for (Shaded q : clips) {
-                int col = rgb(0x17171E, q.shade());
-                for (int v = 0; v < 4; v++) {
-                    float x = q.pts()[v * 3], y = q.pts()[v * 3 + 1], z = q.pts()[v * 3 + 2];
-                    x += Math.signum(x) * clipSlide;
-                    if (mode == Mode.SHATTER) y -= clipSlide;
-                    solid.addVertex(m, x, y, z).setColor(0xFF000000 | col);
-                }
+                default -> {}
             }
         }
-
-        // ---- 2. стекло
-        VertexConsumer glass = buffers.getBuffer(MaskRenderTypes.GLASS);
-        for (int i = 0; i < n; i++) {
-            if (a[i] <= 0.01F) continue;
-            Cell c = cells.get(i);
-            for (Shaded t : c.glass()) {
-                int col = rgb(0xA6AEE0, t.shade());
-                int argb = ((int) (0.42F * a[i] * 255) << 24) | col;
-                for (int v = 0; v < 4; v++) {
-                    int vi = Math.min(v, 2);
-                    put(glass, m, c, t.pts(), vi, k[i], off[i], argb);
-                }
-            }
-        }
-
-        // ---- 3. свечение: ореол, рёбра, обод, полоски
-        VertexConsumer glow = buffers.getBuffer(MaskRenderTypes.ENERGY);
-        for (int i = 0; i < n; i++) {
-            if (a[i] <= 0.01F) continue;
-            Cell c = cells.get(i);
-            float pulse = 0.85F + 0.15F * Mth.sin(time * 0.15F + c.hash * 20);
-            int halo = argb(0x7F9CFF, 0.20F * a[i] * pulse);
-            int core = argb(0xEEF3FF, 0.95F * a[i] * pulse);
-            for (float[] q : c.glow()) quad(glow, m, c, q, k[i], off[i], halo);
-            for (float[] q : c.edges()) quad(glow, m, c, q, k[i], off[i], core);
-        }
-        if (frameA > 0.01F) {
-            int halo = argb(0x7F9CFF, 0.22F * frameA), core = argb(0xF4F7FF, frameA);
-            for (float[] q : rimGlow) quad(glow, m, null, q, 1, 0, halo);
-            for (float[] q : rim) quad(glow, m, null, q, 1, 0, core);
-            int bar = argb(0xFFFFFF, frameA);
-            for (float[] q : bars) {
-                for (int v = 0; v < 4; v++) {
-                    float x = q[v * 3] + Math.signum(q[v * 3]) * clipSlide;
-                    float y = q[v * 3 + 1] - (mode == Mode.SHATTER ? clipSlide : 0);
-                    glow.addVertex(m, x, y, q[v * 3 + 2]).setColor(bar);
-                }
-            }
-        }
+        VertexConsumer glass = buffers.getBuffer(RenderType.entityTranslucentEmissive(TEXTURE));
+        emit(glass, last, k, off, a, side, 1F, false);
+        float pulse = 0.8F + 0.2F * Mth.sin(time * 0.15F);
+        VertexConsumer glow = buffers.getBuffer(RenderType.eyes(GLOW));
+        emit(glow, last, k, off, a, side, pulse, true);
         pose.popPose();
     }
 
-    private static void quad(VertexConsumer vc, Matrix4f m, Cell c, float[] q, float k, float off, int color) {
-        for (int v = 0; v < 4; v++) put(vc, m, c, q, v, k, off, color);
-    }
-
-    /** Вершина с учётом «полёта» соты: масштаб k вокруг центра соты и сдвиг off вдоль её нормали. */
-    private static void put(VertexConsumer vc, Matrix4f m, Cell c, float[] p, int v, float k, float off, int color) {
-        float x = p[v * 3], y = p[v * 3 + 1], z = p[v * 3 + 2];
-        if (c != null && (k != 1 || off != 0)) {
-            float[] cc = c.center(), nn = c.normal();
-            x = cc[0] + (x - cc[0]) * k + nn[0] * off;
-            y = cc[1] + (y - cc[1]) * k + nn[1] * off;
-            z = cc[2] + (z - cc[2]) * k + nn[2] * off;
+    private static void emit(VertexConsumer vc, PoseStack.Pose last, float[] k, float[] off, float[] a, float[] side,
+                             float bright, boolean bothSides) {
+        for (int i = 0; i < cubes.size(); i++) {
+            if (a[i] <= 0.01F) continue;
+            Cube c = cubes.get(i);
+            int alpha = (int) (Mth.clamp(a[i], 0, 1) * 255);
+            int col = (int) (Mth.clamp(bright * a[i], 0, 1) * 255);
+            for (Face f : c.faces()) {
+                for (int pass = 0; pass < (bothSides ? 2 : 1); pass++) {
+                    for (int j = 0; j < 4; j++) {
+                        int v = pass == 0 ? j : 3 - j;
+                        float x = f.pos()[v * 3], y = f.pos()[v * 3 + 1], z = f.pos()[v * 3 + 2];
+                        x = c.cx() + (x - c.cx()) * k[i] + Math.signum(c.cx() - 8) * side[i];
+                        y = c.cy() + (y - c.cy()) * k[i];
+                        z = c.cz() + (z - c.cz()) * k[i] - off[i];      // «вперёд» = -z
+                        vc.addVertex(last, x, y, z)
+                                .setColor(bothSides ? col : 255, bothSides ? col : 255, bothSides ? col : 255, bothSides ? 255 : alpha)
+                                .setUv(f.uv()[v * 2], f.uv()[v * 2 + 1])
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setLight(0xF000F0)
+                                .setNormal(last, f.nx(), f.ny(), f.nz());
+                    }
+                }
+            }
         }
-        vc.addVertex(m, x, y, z).setColor(color);
     }
 
     private static float backOut(float x) {
         float c1 = 2.0F, c3 = c1 + 1, y = x - 1;
         return 1 + c3 * y * y * y + c1 * y * y;
-    }
-
-    private static int rgb(int rgb, float shade) {
-        int r = (int) (((rgb >> 16) & 255) * shade), g = (int) (((rgb >> 8) & 255) * shade), b = (int) ((rgb & 255) * shade);
-        return (Mth.clamp(r, 0, 255) << 16) | (Mth.clamp(g, 0, 255) << 8) | Mth.clamp(b, 0, 255);
-    }
-
-    static int argb(int rgb, float a) {
-        return ((int) (Mth.clamp(a, 0, 1) * 255) << 24) | (rgb & 0xFFFFFF);
     }
 }

@@ -64,11 +64,6 @@ public class MirageMaskItem extends Item {
     }
 
     @Override
-    public boolean isFoil(ItemStack stack) {
-        return true;
-    }
-
-    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("item.miragemask.mirage_mask.desc1").withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.translatable("item.miragemask.mirage_mask.desc2").withStyle(ChatFormatting.GRAY));

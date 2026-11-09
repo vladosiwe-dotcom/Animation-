@@ -8,6 +8,7 @@
   1. строит сцену: камера = глаза игрока (FOV 70°, как рука в Minecraft), рука — в тех же
      координатах, что и рука Minecraft от первого лица, маска — из mask_mesh.json;
   2. ставит ключевые кадры: рука поднимает маску к лицу, разворачивает, прижимает, маска «шлёпается»;
+     (маска — модель Blockbench geo/mirage_mask.json с её текстурами);
   3. экспортирует кадры для мода: assets/miragemask/animations/put_on_first_person.json
      (на каждый тик: матрица руки и матрица маски в пространстве камеры);
   4. рендерит превью (Cycles) и сохраняет .blend, чтобы анимацию можно было править руками.
@@ -24,7 +25,6 @@ from mathutils import Matrix, Quaternion, Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
-MESH = os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask", "models", "mask_mesh.json")
 ANIM_OUT = os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask", "animations", "put_on_first_person.json")
 PREVIEW_DIR = os.path.join(ROOT, "docs", "blender")
 BLEND_OUT = os.path.join(HERE, "mask_put_on.blend")
@@ -87,33 +87,62 @@ def mesh_object(name, verts, faces, mats, face_mats):
     return ob
 
 
+GEO = os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask", "geo", "mirage_mask.json")
+TEX_DIR = os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask", "textures", "entity")
+
+
+def face_corners(d, f, t):
+    """Углы грани (верх-лево, низ-лево, низ-право, верх-право) — как в моде (MaskModel.face)."""
+    x0, y0, z0 = f
+    x1, y1, z1 = t
+    return {
+        "north": [(x1, y1, z0), (x1, y0, z0), (x0, y0, z0), (x0, y1, z0)],
+        "south": [(x0, y1, z1), (x0, y0, z1), (x1, y0, z1), (x1, y1, z1)],
+        "east": [(x1, y1, z1), (x1, y0, z1), (x1, y0, z0), (x1, y1, z0)],
+        "west": [(x0, y1, z0), (x0, y0, z0), (x0, y0, z1), (x0, y1, z1)],
+        "up": [(x0, y1, z0), (x0, y1, z1), (x1, y1, z1), (x1, y1, z0)],
+        "down": [(x0, y0, z1), (x0, y0, z0), (x1, y0, z0), (x1, y0, z1)],
+    }[d]
+
+
 def build_mask():
-    data = json.load(open(MESH))
-    verts, faces, fm = [], [], []
-
-    def add(poly, mi):
-        base = len(verts)
-        for p in poly:
-            verts.append((p[0] / 16, p[1] / 16, p[2] / 16))   # пиксели -> блоки, оси как в ModelPart
-        faces.append(list(range(base, base + len(poly))))
-        fm.append(mi)
-
-    for cell in data["cells"]:
-        for g in cell["glass"]:
-            add(g["tri"], 0)
-        for q in cell["edges"]:
-            add(q, 1)
-    for q in data["rim"]:
-        add(q, 1)
-    for clip in data["clips"]:
-        for f in clip:
-            add(f["quad"], 2)
-    for q in data["bars"]:
-        add(q, 1)
-    mats = [material("Glass", (0.62, 0.66, 0.85), alpha=0.55, transmission=0.6),
-            material("Glow", (0.9, 0.93, 1.0), emission=(0.85, 0.9, 1.0), strength=9.0),
-            material("Clip", (0.06, 0.06, 0.08))]
-    return mesh_object("Mask", verts, faces, mats, fm)
+    """Маска из модели Blockbench (geo/mirage_mask.json) с её пиксельными текстурами."""
+    data = json.load(open(GEO))
+    verts, faces, uvs = [], [], []
+    for el in data["elements"]:
+        for d, fd in el["faces"].items():
+            u0, v0, u1, v1 = [c / 16 for c in fd["uv"]]
+            base = len(verts)
+            for (x, y, z) in face_corners(d, el["from"], el["to"]):
+                verts.append(((x - 8) / 16, -y / 16, (z - 8) / 16))   # Blockbench -> координаты головы
+            faces.append([base, base + 1, base + 2, base + 3])
+            uvs.append([(u0, 1 - v0), (u0, 1 - v1), (u1, 1 - v1), (u1, 1 - v0)])
+    me = bpy.data.meshes.new("Mask")
+    me.from_pydata(verts, [], faces)
+    uv_layer = me.uv_layers.new(name="UV")
+    for poly, quad in zip(me.polygons, uvs):
+        for li, uv in zip(poly.loop_indices, quad):
+            uv_layer.data[li].uv = uv
+    m = bpy.data.materials.new("MaskBlockbench")
+    m.use_nodes = True
+    nt = m.node_tree
+    bsdf = nt.nodes.get("Principled BSDF")
+    img = nt.nodes.new("ShaderNodeTexImage")
+    img.image = bpy.data.images.load(os.path.join(TEX_DIR, "mirage_mask.png"))
+    img.interpolation = "Closest"                      # пиксель-арт без размытия
+    glow = nt.nodes.new("ShaderNodeTexImage")
+    glow.image = bpy.data.images.load(os.path.join(TEX_DIR, "mirage_mask_glow.png"))
+    glow.interpolation = "Closest"
+    nt.links.new(img.outputs["Color"], bsdf.inputs["Base Color"])
+    nt.links.new(img.outputs["Alpha"], bsdf.inputs["Alpha"])
+    nt.links.new(glow.outputs["Color"], bsdf.inputs["Emission Color"])
+    bsdf.inputs["Emission Strength"].default_value = 7.0
+    bsdf.inputs["Roughness"].default_value = 0.1
+    me.materials.append(m)
+    me.update()
+    ob = bpy.data.objects.new("Mask", me)
+    bpy.context.scene.collection.objects.link(ob)
+    return ob
 
 
 def build_arm():
@@ -184,7 +213,8 @@ def arm_pose(hand_target, direction, roll=0.0):
     return m
 
 
-MASK_CENTER_PX = Vector((0.0, -3.35, -5.2))
+_c = json.load(open(os.path.join(ROOT, "src", "main", "resources", "assets", "miragemask", "geo", "mirage_mask.json")))["mirage_mask"]["center"]
+MASK_CENTER_PX = Vector((_c[0] - 8, -_c[1], _c[2] - 8))     # центр маски в координатах головы
 MASK_SCALE = 0.78
 
 # Конечная поза: маска прямо перед глазами лицевой стороной к камере, кисть держит её снизу-справа
