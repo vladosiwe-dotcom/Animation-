@@ -48,6 +48,8 @@ public final class DisguiseManager {
         int nextAmbient = 80;
         boolean paused;         // «отключить образ»: лицо открыто, маскировка на паузе
         boolean locked;         // «оставить образ»: облик не меняется по обстановке
+        long arrowReady;        // перезарядка фантомной стрелы
+        long shootAt = -1;      // кукла натягивает тетиву — когда выстрелить
         net.minecraft.world.item.ItemStack mask = net.minecraft.world.item.ItemStack.EMPTY;
     }
 
@@ -120,12 +122,32 @@ public final class DisguiseManager {
     }
 
     // ------------------------------------------------------------------ две функции маски
-    public static final byte ACTION_LOCK = 1, ACTION_REVEAL = 2;
+    public static final byte ACTION_LOCK = 1, ACTION_REVEAL = 2, ACTION_ARROW = 3;
+    public static final String PHANTOM_ARROW_TAG = "miragemask_phantom";
+    static final int DRAW_TICKS = 12, ARROW_COOLDOWN = 30;
+
+    private static final java.util.Set<EntityType<?>> BOW_LOOKS = java.util.Set.of(
+            EntityType.SKELETON, EntityType.STRAY, EntityType.BOGGED, EntityType.PILLAGER, EntityType.PIGLIN);
+    private static final java.util.Set<EntityType<?>> CROSSBOW_LOOKS = java.util.Set.of(EntityType.PILLAGER, EntityType.PIGLIN);
+
+    /** Облик с луком или арбалетом — может пускать фантомные стрелы. */
+    public static boolean isBowLook(Disguise d) {
+        return d != null && d.kind() == Disguise.Kind.MOB && BOW_LOOKS.contains(BuiltInRegistries.ENTITY_TYPE.get(d.entityType()));
+    }
 
     /** Клавиши: G — оставить образ (не перемаскироваться), H — открыть лицо / вернуть образ. */
     public static void action(ServerPlayer player, byte action) {
         State s = ACTIVE.get(player.getUUID());
         if (s == null) return;
+        if (action == ACTION_ARROW) {
+            long now = player.serverLevel().getGameTime();
+            if (s.paused || !isBowLook(s.disguise) || now < s.arrowReady) return;
+            s.arrowReady = now + ARROW_COOLDOWN;
+            s.shootAt = now + DRAW_TICKS;                // сначала кукла натягивает тетиву, как скелет
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(player,
+                    new com.vladosiwe.miragemask.network.DollPosePayload(player.getId(), DRAW_TICKS + 10));
+            return;
+        }
         if (action == ACTION_LOCK) {
             s.locked = !s.locked;
             play(player, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8F, s.locked ? 0.7F : 1.3F);
@@ -164,7 +186,11 @@ public final class DisguiseManager {
             int sec = (int) (left / 20);
             player.playNotifySound(SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.PLAYERS, 0.6F, sec == 10 ? 0.7F : 1.0F + (10 - sec) * 0.05F);
         }
-        if (s.paused) return; // лицо открыто: облик, звуки и реакция мобов на паузе
+        if (s.paused) { s.shootAt = -1; return; } // лицо открыто: облик, звуки и реакция мобов на паузе
+        if (s.shootAt > 0 && level.getGameTime() >= s.shootAt) {
+            s.shootAt = -1;
+            shootPhantomArrow(player, s);
+        }
         // смена обстановки → новый облик (если образ не закреплён)
         if (!s.locked && left % CONTEXT_CHECK_TICKS == 0) {
             String key = DisguiseContext.contextKey(player);
@@ -238,8 +264,25 @@ public final class DisguiseManager {
         }
     }
 
+    /** Фантомная стрела: без лука и стрел, подобрать нельзя; летит как у скелета. */
+    private static void shootPhantomArrow(ServerPlayer player, State s) {
+        ServerLevel level = player.serverLevel();
+        net.minecraft.world.entity.projectile.Arrow arrow = new net.minecraft.world.entity.projectile.Arrow(level, player,
+                new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW), null);
+        arrow.pickup = net.minecraft.world.entity.projectile.AbstractArrow.Pickup.CREATIVE_ONLY;
+        arrow.addTag(PHANTOM_ARROW_TAG);
+        arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.6F, 1.0F);
+        level.addFreshEntity(arrow);
+        boolean crossbow = CROSSBOW_LOOKS.contains(BuiltInRegistries.ENTITY_TYPE.get(s.disguise.entityType()));
+        level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                crossbow ? SoundEvents.CROSSBOW_SHOOT : SoundEvents.SKELETON_SHOOT, SoundSource.HOSTILE,
+                1.0F, 1.0F / (player.getRandom().nextFloat() * 0.4F + 0.8F));
+    }
+
     @SubscribeEvent
     public static void onDamage(LivingIncomingDamageEvent event) {
+        Entity direct = event.getSource().getDirectEntity();
+        if (direct != null && direct.getTags().contains(PHANTOM_ARROW_TAG)) return;   // стрела облика маску не срывает
         Entity src = event.getSource().getEntity();
         if (src instanceof ServerPlayer player && src != event.getEntity() && isActiveUnpaused(player)) {
             end(player, true);

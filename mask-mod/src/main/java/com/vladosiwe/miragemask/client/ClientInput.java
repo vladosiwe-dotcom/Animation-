@@ -21,6 +21,7 @@ public final class ClientInput {
     static final String CATEGORY = "key.categories.miragemask";
     static final KeyMapping LOCK = new KeyMapping("key.miragemask.lock", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, CATEGORY);
     static final KeyMapping REVEAL = new KeyMapping("key.miragemask.reveal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, CATEGORY);
+    static final KeyMapping ARROW = new KeyMapping("key.miragemask.arrow", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
 
     private ClientInput() {}
 
@@ -30,6 +31,7 @@ public final class ClientInput {
         if (mc.player == null) return;
         while (LOCK.consumeClick()) send(DisguiseManager.ACTION_LOCK);
         while (REVEAL.consumeClick()) send(DisguiseManager.ACTION_REVEAL);
+        while (ARROW.consumeClick()) send(DisguiseManager.ACTION_ARROW);
     }
 
     public static void send(byte action) {

@@ -48,6 +48,7 @@ public final class ClientSetup {
     public static void keys(net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent event) {
         event.register(ClientInput.LOCK);
         event.register(ClientInput.REVEAL);
+        event.register(ClientInput.ARROW);
     }
 
     @SubscribeEvent

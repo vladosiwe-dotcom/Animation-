@@ -21,5 +21,7 @@
   "hud.miragemask.off": "Маска снята",
   "command.miragemask.bad_mob": "В «%s» маска превратить не может",
   "subtitles.miragemask.put_on": "Надевается маска",
-  "subtitles.miragemask.disguise": "Маскировка"
+  "subtitles.miragemask.disguise": "Маскировка",
+  "key.miragemask.arrow": "Фантомная стрела (облик с луком)",
+  "hud.miragemask.arrow": " · [V] стрела"
 }

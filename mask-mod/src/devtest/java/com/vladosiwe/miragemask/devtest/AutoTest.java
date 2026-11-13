@@ -53,6 +53,7 @@ public final class AutoTest {
         if (!ON || mc.player == null || mc.level == null || mc.screen != null && t < 0) return;
         t++;
         if (MODE.equals("gallery")) gallery(mc);
+        else if (MODE.equals("gait")) gait(mc);
         else look(mc);
     }
 
@@ -124,6 +125,69 @@ public final class AutoTest {
             case 430 -> mc.stop();
             default -> {}
         }
+    }
+
+    /** Походка, оружие облика, фантомная стрела. */
+    private static void gait(Minecraft mc) {
+        var c = mc.player.connection;
+        switch (t) {
+            case 40 -> {
+                c.sendCommand("gamemode survival"); c.sendCommand("time set 6000");
+                c.sendCommand("gamerule doDaylightCycle false"); c.sendCommand("gamerule doMobSpawning false");
+                c.sendCommand("weather clear"); c.sendCommand("kill @e[type=!player]");
+                c.sendCommand("tp @s 0.5 -60 0.5 180 0"); c.sendCommand("clear @s");
+                c.sendCommand("recipe give @s *"); c.sendCommand("gamerule sendCommandFeedback false");
+            }
+            case 60 -> { c.sendCommand("mirage as minecraft:skeleton"); mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT); }
+            case 80 -> { clean(); shot("g01_skeleton_bow"); }
+            // выстрел: корова в 7 блоках впереди
+            case 85 -> c.sendCommand("summon cow 0.5 -60 -7.5 {NoAI:1b}");
+            case 95 -> record("g_phantom_arrow", 3);
+            case 100 -> ClientInput.send(DisguiseManager.ACTION_ARROW);
+            case 106 -> shot("g02_aim_a");
+            case 110 -> shot("g03_aim_b");
+            case 114 -> shot("g04_arrow_flying");
+            case 135 -> logState("after phantom arrow");
+            // ходьба вперёд (к камере) и вбок — видео
+            case 150 -> { c.sendCommand("kill @e[type=cow]"); c.sendCommand("kill @e[type=arrow]"); }
+            case 160 -> record("g_walk_forward_skeleton", 4);
+            case 165 -> mc.options.keyUp.setDown(true);
+            case 175 -> shot("g05_walk_a");
+            case 179 -> shot("g06_walk_b");
+            case 205 -> mc.options.keyUp.setDown(false);
+            case 215 -> { c.sendCommand("tp @s 0.5 -60 0.5 180 0"); c.sendCommand("mirage as minecraft:cow"); }
+            case 235 -> record("g_walk_sideways_cow", 4);
+            case 240 -> mc.options.keyLeft.setDown(true);
+            case 255 -> shot("g07_cow_strafe_body_turns");
+            case 280 -> mc.options.keyLeft.setDown(false);
+            case 290 -> { c.sendCommand("tp @s 0.5 -60 0.5 180 0"); c.sendCommand("mirage as minecraft:pillager"); }
+            case 310 -> shot("g08_pillager_crossbow");
+            case 315 -> c.sendCommand("mirage as minecraft:piglin_brute");
+            case 335 -> shot("g09_piglin_brute_axe");
+            case 340 -> c.sendCommand("mirage as minecraft:zombified_piglin");
+            case 360 -> shot("g10_zombified_piglin_sword");
+            case 365 -> c.sendCommand("mirage as minecraft:wither_skeleton");
+            case 385 -> shot("g11_wither_skeleton_sword");
+            case 390 -> { c.sendCommand("mirage as minecraft:stray"); }
+            case 400 -> ClientInput.send(DisguiseManager.ACTION_ARROW);
+            case 408 -> shot("g12_stray_aim");
+            case 430 -> mc.stop();
+            default -> {}
+        }
+    }
+
+    private static void logState(String label) {
+        Minecraft mc = Minecraft.getInstance();
+        var server = mc.getSingleplayerServer();
+        var uuid = mc.player.getUUID();
+        server.execute(() -> {
+            var sp = server.getPlayerList().getPlayer(uuid);
+            boolean disguised = DisguiseManager.isDisguised(sp);
+            var cows = server.overworld().getEntitiesOfClass(net.minecraft.world.entity.animal.Cow.class,
+                    new net.minecraft.world.phys.AABB(-20, -70, -20, 20, -40, 20));
+            String hp = cows.isEmpty() ? "no cow" : ("cow hp=" + cows.get(0).getHealth() + "/" + cows.get(0).getMaxHealth());
+            System.out.println("[AutoTest] " + label + ": disguised=" + disguised + " " + hp);
+        });
     }
 
     private static void gallery(Minecraft mc) {

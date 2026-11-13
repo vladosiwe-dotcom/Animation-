@@ -33,6 +33,9 @@ public class MirageMask {
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         event.registrar("2")
                 .playToClient(DisguisePayload.TYPE, DisguisePayload.STREAM_CODEC, DisguisePayload::handle)
+                .playToClient(com.vladosiwe.miragemask.network.DollPosePayload.TYPE,
+                        com.vladosiwe.miragemask.network.DollPosePayload.STREAM_CODEC,
+                        com.vladosiwe.miragemask.network.DollPosePayload::handle)
                 .playToServer(com.vladosiwe.miragemask.network.MaskActionPayload.TYPE,
                         com.vladosiwe.miragemask.network.MaskActionPayload.STREAM_CODEC,
                         com.vladosiwe.miragemask.network.MaskActionPayload::handle);

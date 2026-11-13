@@ -41,6 +41,8 @@ import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 public final class ClientDisguises {
     public static final int STICK_TICKS = 14;
     static final int SHATTER_TICKS = 16;
+    /** Скорость «ног» моба при обычном шаге (у мобов ~0.5–0.6; у шага игрока было бы ~0.86). */
+    static final float MOB_WALK_LIMB = 0.55F;
     static int clientTicks;
 
     /** Что рисовать на лице настоящего игрока (3D-маска) — для MaskLayer. */
@@ -51,6 +53,7 @@ public final class ClientDisguises {
     static final class Doll {
         DisguisePayload info;
         int stickStart = -1000;
+        int aimUntil = -1000;
         final LivingEntity entity;
         boolean fresh = true;
         int stillTicks;
@@ -64,6 +67,31 @@ public final class ClientDisguises {
     }
 
     private static final Map<Integer, Doll> DOLLS = new HashMap<>();
+
+    private static final Map<EntityType<?>, net.minecraft.world.item.Item> DEFAULT_WEAPON = Map.of(
+            EntityType.SKELETON, net.minecraft.world.item.Items.BOW,
+            EntityType.STRAY, net.minecraft.world.item.Items.BOW,
+            EntityType.BOGGED, net.minecraft.world.item.Items.BOW,
+            EntityType.PILLAGER, net.minecraft.world.item.Items.CROSSBOW,
+            EntityType.PIGLIN, net.minecraft.world.item.Items.CROSSBOW,
+            EntityType.ZOMBIFIED_PIGLIN, net.minecraft.world.item.Items.GOLDEN_SWORD,
+            EntityType.PIGLIN_BRUTE, net.minecraft.world.item.Items.GOLDEN_AXE,
+            EntityType.WITHER_SKELETON, net.minecraft.world.item.Items.STONE_SWORD);
+
+    /** Пакет «целится»: кукла поднимает лук/арбалет. */
+    public static void aim(int entityId, int ticks) {
+        Doll d = DOLLS.get(entityId);
+        if (d != null) d.aimUntil = clientTicks + ticks;
+    }
+
+    /** Может ли локальный игрок сейчас пускать фантомные стрелы (для подсказки в HUD). */
+    public static boolean localCanShoot() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        Doll d = DOLLS.get(mc.player.getId());
+        return d != null && !d.info.paused() && d.entity instanceof Mob
+                && DEFAULT_WEAPON.get(d.entity.getType()) instanceof net.minecraft.world.item.ProjectileWeaponItem;
+    }
     private static final RandomSource RANDOM = RandomSource.create();
 
     private ClientDisguises() {}
@@ -172,6 +200,9 @@ public final class ClientDisguises {
             }
         }
         if (living instanceof Mob mob) mob.setNoAi(true);
+        // оружие, с которым этот моб появляется в игре (скелет без лука выглядел бы странно)
+        net.minecraft.world.item.Item weapon = DEFAULT_WEAPON.get(type);
+        if (weapon != null) living.setItemSlot(EquipmentSlot.MAINHAND, new net.minecraft.world.item.ItemStack(weapon));
         return living;
     }
 
@@ -234,7 +265,18 @@ public final class ClientDisguises {
         e.setOnGround(p.onGround());
         e.wasTouchingWater = p.isInWater();     // рыбы и аксолотли «плывут», а не бьются на суше
         e.setSprinting(p.isSprinting());
-        e.walkAnimation.update(Math.min(moved * 4.0F, 1.0F), 0.4F);
+        // походка как у моба: мобы ходят медленнее игрока, поэтому шаг игрока = обычный шаг моба
+        float limb;
+        if (d.info.isPlayerCopy()) {
+            limb = Math.min(moved * 4.0F, 1.0F);             // копия игрока ходит как игрок
+        } else {
+            float pace = moved / 0.216F;                       // 1 — шаг игрока, ~1.3 — бег
+            limb = Math.min(pace * MOB_WALK_LIMB, 1.0F);
+            if (p.isCrouching()) limb *= 0.6F;
+        }
+        e.walkAnimation.update(limb, 0.4F);
+        boolean aiming = clientTicks < d.aimUntil;
+        if (e instanceof Mob mob) mob.setAggressive(aiming);
         if (e instanceof Player copy) {
             copy.setPose(p.getPose());
             copy.setShiftKeyDown(p.isShiftKeyDown());
@@ -245,12 +287,28 @@ public final class ClientDisguises {
         d.stillTicks = (moved < 0.01F && !turning && !d.info.isPlayerCopy()) ? d.stillTicks + 1 : 0;
         if (d.stillTicks > 40) {
             idle(d, p, level);
-        } else {
+        } else if (d.info.isPlayerCopy()) {
             d.bodyYaw = p.yBodyRot;
             d.idleTimer = 0;
             e.yBodyRot = p.yBodyRot;
             e.setYRot(p.yBodyRot);
             e.yHeadRot = p.yHeadRot;
+            e.setXRot(p.getXRot());
+        } else {
+            // как у мобов: тело разворачивается по ходу движения, голова — не дальше ±75° от тела
+            d.idleTimer = 0;
+            if (aiming) {
+                d.bodyYaw = approach(d.bodyYaw, p.yHeadRot, 30F);   // целится — корпус к цели
+            } else if (moved > 0.02F) {
+                float moveYaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
+                d.bodyYaw = approach(d.bodyYaw, moveYaw, 15F);
+            }
+            float head = p.yHeadRot;
+            float diff = Mth.wrapDegrees(head - d.bodyYaw);
+            if (Math.abs(diff) > 75F) d.bodyYaw += diff - Math.signum(diff) * 75F;
+            e.yBodyRot = d.bodyYaw;
+            e.setYRot(d.bodyYaw);
+            e.yHeadRot = head;
             e.setXRot(p.getXRot());
         }
     }

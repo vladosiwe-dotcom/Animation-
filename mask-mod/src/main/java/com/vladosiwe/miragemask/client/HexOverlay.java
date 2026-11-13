@@ -220,6 +220,7 @@ public final class HexOverlay {
             String status = paused ? Component.translatable("hud.miragemask.paused").getString()
                     : locked ? Component.translatable("hud.miragemask.locked").getString()
                     : Component.translatable("hud.miragemask.adaptive").getString();
+            if (ClientDisguises.localCanShoot()) status += Component.translatable("hud.miragemask.arrow").getString();
             g.drawString(mc.font, status, tx, y + 18, argb(paused ? ICE : locked ? 0xFFD27A : 0x7FB8D8, fade), false);
             int sec = (ticksLeft + 19) / 20;
             int barW = PANEL_W - 48 - 26, by = y + 33;

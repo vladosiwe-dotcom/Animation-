@@ -18,6 +18,12 @@ public final class ClientBridge {
         return player.getId() == localDisguisedId;
     }
 
+    static void handlePose(DollPosePayload payload) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            com.vladosiwe.miragemask.client.ClientDisguises.aim(payload.entityId(), payload.ticks());
+        }
+    }
+
     static void handle(DisguisePayload payload) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             com.vladosiwe.miragemask.client.ClientDisguises.handle(payload);

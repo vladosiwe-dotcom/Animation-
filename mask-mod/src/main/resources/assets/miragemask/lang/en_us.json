@@ -21,5 +21,7 @@
   "hud.miragemask.off": "Mask off",
   "command.miragemask.bad_mob": "The mask cannot turn you into %s",
   "subtitles.miragemask.put_on": "Mask put on",
-  "subtitles.miragemask.disguise": "Disguise shimmers"
+  "subtitles.miragemask.disguise": "Disguise shimmers",
+  "key.miragemask.arrow": "Phantom arrow (bow look)",
+  "hud.miragemask.arrow": " · [V] arrow"
 }
